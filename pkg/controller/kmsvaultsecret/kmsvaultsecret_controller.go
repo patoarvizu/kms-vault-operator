@@ -105,34 +105,57 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		return reconcile.Result{}, err
 	}
 
-	awsSession, err := session.NewSession()
+	decryptedSecret, err := decryptSecret(instance.Spec.Secret.EncryptedSecret)
 	if err != nil {
-		reqLogger.Info("Error creating AWS session", err)
+		reqLogger.Error(err, "Error decrypting KMS secret")
 		return reconcile.Result{}, err
 	}
-
-	svc := kms.New(awsSession)
-	decoded, err := base64.StdEncoding.DecodeString(instance.Spec.Secret.EncryptedSecret)
+	vaultClient, err := getAuthenticatedVaultClient()
 	if err != nil {
-		reqLogger.Info("Error decoding encrypted secret", err)
+		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{}, err
+	}
+	writeData := map[string]interface{}{
+		instance.Spec.Secret.Key: decryptedSecret,
+	}
+	_, writeErr := vaultClient.Logical().Write(instance.Spec.Path, writeData)
+	if writeErr != nil {
+		reqLogger.Error(err, "Error writing secret to Vault")
+		return reconcile.Result{}, writeErr
+	} else {
+		reqLogger.Info(fmt.Sprintf("Wrote %s to %s", instance.Spec.Secret.Key, instance.Spec.Path))
+	}
+
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func decryptSecret(encryptedSecret string) (string, error) {
+	awsSession, err := session.NewSession()
+	if err != nil {
+		return "", err
+	}
+	svc := kms.New(awsSession)
+	decoded, err := base64.StdEncoding.DecodeString(encryptedSecret)
+	if err != nil {
+		return "", err
 	}
 	result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded})
 	if err != nil {
-		reqLogger.Info("Error decrypting secret", err)
-		return reconcile.Result{}, err
+		return "", err
 	}
+	return string(result.Plaintext), nil
+}
+
+func getAuthenticatedVaultClient() (*vaultapi.Client, error) {
 	vaultConfig := vaultapi.DefaultConfig()
 	vaultConfig.ConfigureTLS(&vaultapi.TLSConfig{Insecure: true})
 	vaultClient, err := vaultapi.NewClient(vaultConfig)
 	if err != nil {
-		reqLogger.Info("Error creating Vault client", err)
-		return reconcile.Result{}, err
+		return nil, err
 	}
 	vaultToken, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
-		reqLogger.Info("Error reading service account token", err)
-		return reconcile.Result{}, err
+		return nil, err
 	}
 	data := map[string]interface{}{
 		"jwt":  string(vaultToken),
@@ -140,21 +163,9 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 	}
 	secretAuth, err := vaultClient.Logical().Write("auth/kubernetes/login", data)
 	if err != nil {
-		reqLogger.Info("Error authenticating with Vault", err)
-		return reconcile.Result{}, err
+		return nil, err
 	}
 	vaultClient.SetToken(secretAuth.Auth.ClientToken)
 	vaultClient.Auth()
-	writeData := map[string]interface{}{
-		instance.Spec.Secret.Key: string(result.Plaintext),
-	}
-	_, writeErr := vaultClient.Logical().Write(instance.Spec.Path, writeData)
-	if writeErr != nil {
-		reqLogger.Info("Error writing secret to Vault")
-		return reconcile.Result{}, writeErr
-	} else {
-		reqLogger.Info(fmt.Sprintf("Wrote %s to %s", instance.Spec.Secret.Key, instance.Spec.Path))
-	}
-
-	return reconcile.Result{Requeue: true}, nil
+	return vaultClient, nil
 }
