@@ -12,6 +12,10 @@ import (
 type KMSVaultSecretSpec struct {
 	Path   string `json:"path"`
 	Secret Secret `json:"secret"`
+
+	// +kubebuilder:validation:Enum=k8s,token
+	VaultAuthMethod string `json:"vaultAuthMethod"`
+
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
