@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 
@@ -23,6 +22,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/kms"
 
 	vaultapi "github.com/hashicorp/vault/api"
+)
+
+type VaultAuthMethod interface {
+	login(*vaultapi.Config) (*vaultapi.Secret, error)
+}
+
+const (
+	K8sAuthenticationMethod   string = "k8s"
+	TokenAuthenticationMethod string = "token"
 )
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
@@ -110,7 +118,7 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		reqLogger.Error(err, "Error decrypting KMS secret")
 		return reconcile.Result{}, err
 	}
-	vaultClient, err := getAuthenticatedVaultClient()
+	vaultClient, err := getAuthenticatedVaultClient(instance.Spec.VaultAuthMethod)
 	if err != nil {
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{}, err
@@ -146,26 +154,26 @@ func decryptSecret(encryptedSecret string) (string, error) {
 	return string(result.Plaintext), nil
 }
 
-func getAuthenticatedVaultClient() (*vaultapi.Client, error) {
+func getAuthenticatedVaultClient(vaultAuthenticationMethod string) (*vaultapi.Client, error) {
 	vaultConfig := vaultapi.DefaultConfig()
-	vaultConfig.ConfigureTLS(&vaultapi.TLSConfig{Insecure: true})
 	vaultClient, err := vaultapi.NewClient(vaultConfig)
 	if err != nil {
 		return nil, err
 	}
-	vaultToken, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	secret, err := vaultAuthentication(vaultAuthenticationMethod).login(vaultConfig)
 	if err != nil {
 		return nil, err
 	}
-	data := map[string]interface{}{
-		"jwt":  string(vaultToken),
-		"role": "kms-vault-operator",
-	}
-	secretAuth, err := vaultClient.Logical().Write("auth/kubernetes/login", data)
-	if err != nil {
-		return nil, err
-	}
-	vaultClient.SetToken(secretAuth.Auth.ClientToken)
+	vaultClient.SetToken(secret.Auth.ClientToken)
 	vaultClient.Auth()
 	return vaultClient, nil
+}
+
+func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
+	switch vaultAuthenticationMethod {
+	case K8sAuthenticationMethod:
+		return VaultK8sAuth{}
+	default:
+		return VaultTokenAuth{}
+	}
 }

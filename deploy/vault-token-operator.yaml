@@ -47,3 +47,8 @@ spec:
               value: "https://vault:8200"
             - name: VAULT_SKIP_VERIFY
               value: "true"
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-secrets
+                  key: VAULT_TOKEN

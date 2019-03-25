@@ -47,3 +47,7 @@ spec:
               value: "https://vault:8200"
             - name: VAULT_SKIP_VERIFY
               value: "true"
+            - name: VAULT_K8S_ROLE
+              value: "kms-vault-operator"
+            - name: VAULT_K8S_LOGIN_ENDPOINT
+              value: "auth/kubernetes/login"
