@@ -25,7 +25,7 @@ import (
 )
 
 type VaultAuthMethod interface {
-	login(*vaultapi.Config) (*vaultapi.Secret, error)
+	login(*vaultapi.Config) (string, error)
 }
 
 const (
@@ -160,11 +160,11 @@ func getAuthenticatedVaultClient(vaultAuthenticationMethod string) (*vaultapi.Cl
 	if err != nil {
 		return nil, err
 	}
-	secret, err := vaultAuthentication(vaultAuthenticationMethod).login(vaultConfig)
+	loginToken, err := vaultAuthentication(vaultAuthenticationMethod).login(vaultConfig)
 	if err != nil {
 		return nil, err
 	}
-	vaultClient.SetToken(secret.Auth.ClientToken)
+	vaultClient.SetToken(loginToken)
 	vaultClient.Auth()
 	return vaultClient, nil
 }

@@ -9,10 +9,10 @@ import (
 
 type VaultTokenAuth struct{}
 
-func (k8s VaultTokenAuth) login(vaultConfig *vaultapi.Config) (*vaultapi.Secret, error) {
+func (k8s VaultTokenAuth) login(vaultConfig *vaultapi.Config) (string, error) {
 	vaultToken, set := os.LookupEnv("VAULT_TOKEN")
 	if !set {
-		return nil, errors.New("VAULT_TOKEN environment variable not found")
+		return "", errors.New("VAULT_TOKEN environment variable not found")
 	}
-	return &vaultapi.Secret{Auth: &vaultapi.SecretAuth{ClientToken: vaultToken}}, nil
+	return vaultToken, nil
 }
