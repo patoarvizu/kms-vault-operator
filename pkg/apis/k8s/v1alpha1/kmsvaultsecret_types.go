@@ -16,6 +16,9 @@ type KMSVaultSecretSpec struct {
 	// +kubebuilder:validation:Enum=k8s,token
 	VaultAuthMethod string `json:"vaultAuthMethod"`
 
+	// +kubebuilder:validation:Enum=v1,v2
+	KVVersion string `json:"kvVersion"`
+
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html

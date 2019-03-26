@@ -28,9 +28,15 @@ type VaultAuthMethod interface {
 	login(*vaultapi.Config) (string, error)
 }
 
+type KVWriter interface {
+	write(*k8sv1alpha1.KMSVaultSecretSpec, *vaultapi.Client) error
+}
+
 const (
 	K8sAuthenticationMethod   string = "k8s"
 	TokenAuthenticationMethod string = "token"
+	KVv1                      string = "v1"
+	KVv2                      string = "v2"
 )
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
@@ -113,20 +119,12 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		return reconcile.Result{}, err
 	}
 
-	decryptedSecret, err := decryptSecret(instance.Spec.Secret.EncryptedSecret)
-	if err != nil {
-		reqLogger.Error(err, "Error decrypting KMS secret")
-		return reconcile.Result{}, err
-	}
 	vaultClient, err := getAuthenticatedVaultClient(instance.Spec.VaultAuthMethod)
 	if err != nil {
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{}, err
 	}
-	writeData := map[string]interface{}{
-		instance.Spec.Secret.Key: decryptedSecret,
-	}
-	_, writeErr := vaultClient.Logical().Write(instance.Spec.Path, writeData)
+	writeErr := kvWriter(instance.Spec.KVVersion).write(&instance.Spec, vaultClient)
 	if writeErr != nil {
 		reqLogger.Error(err, "Error writing secret to Vault")
 		return reconcile.Result{}, writeErr
@@ -175,5 +173,14 @@ func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
 		return VaultK8sAuth{}
 	default:
 		return VaultTokenAuth{}
+	}
+}
+
+func kvWriter(kvVersion string) KVWriter {
+	switch kvVersion {
+	case KVv1:
+		return KVv1Writer{}
+	default:
+		return nil
 	}
 }
