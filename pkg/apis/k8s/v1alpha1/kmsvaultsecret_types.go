@@ -10,18 +10,23 @@ import (
 // KMSVaultSecretSpec defines the desired state of KMSVaultSecret
 // +k8s:openapi-gen=true
 type KMSVaultSecretSpec struct {
-	Path   string `json:"path"`
-	Secret Secret `json:"secret"`
+	Path       string     `json:"path"`
+	Secrets    []Secret   `json:"secrets"`
+	KVSettings KVSettings `json:"kvSettings"`
 
 	// +kubebuilder:validation:Enum=k8s,token
 	VaultAuthMethod string `json:"vaultAuthMethod"`
 
-	// +kubebuilder:validation:Enum=v1,v2
-	KVVersion string `json:"kvVersion"`
-
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+}
+
+type KVSettings struct {
+	// +kubebuilder:validation:Enum=v1,v2
+	EngineVersion string `json:"engineVersion"`
+	// +kubebuilder:validation:Minimum=0
+	CASIndex int `json:"casIndex,omitempty"`
 }
 
 type Secret struct {

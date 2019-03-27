@@ -7,7 +7,6 @@ import (
 
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,7 +28,7 @@ type VaultAuthMethod interface {
 }
 
 type KVWriter interface {
-	write(*k8sv1alpha1.KMSVaultSecretSpec, *vaultapi.Client) error
+	write(*k8sv1alpha1.KMSVaultSecret, *vaultapi.Client) error
 }
 
 const (
@@ -67,16 +66,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// Watch for changes to primary resource KMSVaultSecret
 	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner KMSVaultSecret
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &k8sv1alpha1.KMSVaultSecret{},
-	})
 	if err != nil {
 		return err
 	}
@@ -124,32 +113,36 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{}, err
 	}
-	writeErr := kvWriter(instance.Spec.KVVersion).write(&instance.Spec, vaultClient)
+	writeErr := kvWriter(instance.Spec.KVSettings.EngineVersion).write(instance, vaultClient)
 	if writeErr != nil {
 		reqLogger.Error(err, "Error writing secret to Vault")
 		return reconcile.Result{}, writeErr
 	} else {
-		reqLogger.Info(fmt.Sprintf("Wrote %s to %s", instance.Spec.Secret.Key, instance.Spec.Path))
+		reqLogger.Info(fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
 	}
 
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func decryptSecret(encryptedSecret string) (string, error) {
+func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error) {
 	awsSession, err := session.NewSession()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	decryptedSecretData := map[string]interface{}{}
 	svc := kms.New(awsSession)
-	decoded, err := base64.StdEncoding.DecodeString(encryptedSecret)
-	if err != nil {
-		return "", err
+	for _, s := range secrets {
+		decoded, err := base64.StdEncoding.DecodeString(s.EncryptedSecret)
+		if err != nil {
+			return nil, err
+		}
+		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded})
+		if err != nil {
+			return nil, err
+		}
+		decryptedSecretData[s.Key] = string(result.Plaintext)
 	}
-	result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded})
-	if err != nil {
-		return "", err
-	}
-	return string(result.Plaintext), nil
+	return decryptedSecretData, nil
 }
 
 func getAuthenticatedVaultClient(vaultAuthenticationMethod string) (*vaultapi.Client, error) {
@@ -181,6 +174,6 @@ func kvWriter(kvVersion string) KVWriter {
 	case KVv1:
 		return KVv1Writer{}
 	default:
-		return nil
+		return KVv2Writer{}
 	}
 }

@@ -74,9 +74,21 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 							Format: "",
 						},
 					},
-					"secret": {
+					"secrets": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"),
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"),
+									},
+								},
+							},
+						},
+					},
+					"kvSettings": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KVSettings"),
 						},
 					},
 					"vaultAuthMethod": {
@@ -85,18 +97,12 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 							Format: "",
 						},
 					},
-					"kvVersion": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"path", "secret", "vaultAuthMethod", "kvVersion"},
+				Required: []string{"path", "secrets", "kvSettings", "vaultAuthMethod"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"},
+			"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KVSettings", "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"},
 	}
 }
 

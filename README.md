@@ -14,7 +14,8 @@
             - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
             - [No validation on target path](#no-validation-on-target-path)
             - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
-            - [Only K/V secrets V1 is supported (as of this version)](#only-kv-secrets-v1-is-supported-as-of-this-version)
+            - [KMS encryption context is not supported (as of this version)](#kms-encryption-context-is-not-supported-as-of-this-version)
+            - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
     - [Help wanted!](#help-wanted)
 
 <!-- /TOC -->
@@ -23,7 +24,7 @@ This operator manages `KMSVaultSecret` CRDs containing secrets encrypted with a 
 
 The AWS credentials to do the decryption operation use [aws-sdk-go](https://github.com/aws/aws-sdk-go) and follows the default [credential precedence order](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html), so if you're going to inject environment variables or configuration files, you should do so on the operator's `Deployment` manifest (e.g. [deploy/operator.yaml](deploy/operator.yaml)).
 
-Each secret will define a `path`, a `secret` spec, and a `vaultAuthMethod`.
+Each secret will define a `path`, a `vaultAuthMethod`, a set of `kvSettings`, and a list of `secrets`.
 
 This first version of the operator supports authenticating to Vault via the [Kubernetes auth method](https://www.vaultproject.io/docs/auth/kubernetes.html) (i.e. `vaultAuthMethod: k8s`) or directly via a [Vault token](https://www.vaultproject.io/docs/auth/token.html) (i.e. `vaultAuthMethod: token`). Support for more authentication methods will be added in the future. Note that the configuration required for the operator to perform KMS and Vault operations is not done on the `KMSVaultSecret` CR but on the operator `Deployment` itself, and is documented below.
 
@@ -74,7 +75,7 @@ From the command line, you can use the [aws kms encrypt command](https://docs.aw
 ```
 aws kms encrypt --key-id <key-id-or-alias> --plaintext "Hello world" --output text --query CiphertextBlob
 ```
-Then take that output and set it as the `spec.secret.encryptedSecret` field of your `KMSVaultSecret`, e.g.
+Then take that output and set it as an item the `spec.secrets` array of your `KMSVaultSecret` resource, e.g.
 ```
 apiVersion: k8s.patoarvizu.dev/v1alpha1
 kind: KMSVaultSecret
@@ -84,9 +85,11 @@ metadata:
 spec:
   path: secret/test/kms-vault-secret
   vaultAuthMethod: <auth-method>
-  secret:
-    key: test
-    encryptedSecret: <kms-encrypted-secret>
+  kvSettings:
+    engineVersion: v1
+  secrets:
+    - key: test
+      encryptedSecret: <kms-encrypted-secret>
 ```
 
 Make sure you also set the appropriate `vaultAuthMethod` based on your setup. After that, assuming the resource is in `deploy/example-kms-vault-secret.yaml`, just run:
@@ -102,7 +105,7 @@ The `KMSVaultSecret` CRD is a namespaced resource, but please note that the [Kub
 
 #### Multiple secrets writing to the same location
 
-Also, the operator doesn't make any guarantees or checks about `KMSVaultSecret`s in different namespaces writing to the same Vault paths. The operator is designed to **preiodically** write the secret, so if two or more resources are pointing to the same location, the operator will constantly overwrite them.
+Also, the operator doesn't make any guarantees or checks about `KMSVaultSecret`s in different namespaces writing to the same Vault paths. The operator is designed to **continuously** write the secret, so if two or more resources are pointing to the same location, the operator will constantly overwrite them.
 
 #### No validation on target path
 
@@ -112,9 +115,13 @@ Because the controller is designed to write the secret to Vault continuously, it
 
 The kms-vault-operator controller doesn't implement any [Kubernetes finalizers](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers), so deleting the custom resource won't delete the secret from Vault.
 
-#### Only K/V secrets V1 is supported (as of this version)
+#### KMS encryption context is not supported (as of this version)
 
-The operator only supports writing secrets to a K/V backend version 1. Support for selecting the target version will be added soon.
+The operator or `KMSVaultSecret` CRD doesn't support passing [encryption context](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#encrypt_context) to the `Decrypt` operation, so only secrets encrypted without encryption context are supported.
+
+#### Support for K/V V2 is limited (as of this version)
+
+The `KMSVaultSecret` CRD supports specifying `kvSettings.engineVersion: v2` and a check-and-set index with `kvSettings.casIndex` but support for it is limited. For example, the operator doesn't doesn't enforce or validate that the `path` is V2-friendly, and no metadata operations are available.
 
 ## Help wanted!
 
