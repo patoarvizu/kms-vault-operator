@@ -114,7 +114,7 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"created": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},

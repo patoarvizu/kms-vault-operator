@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 
@@ -120,8 +121,9 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 	} else {
 		reqLogger.Info(fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
 	}
-
-	return reconcile.Result{Requeue: true}, nil
+	instance.Status.Created = true
+	r.client.Status().Update(context.TODO(), instance)
+	return reconcile.Result{RequeueAfter: time.Minute * 2}, nil
 }
 
 func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error) {
