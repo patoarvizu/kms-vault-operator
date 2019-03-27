@@ -12,9 +12,9 @@ func (KVv1 KVv1Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *va
 	if err != nil {
 		return err
 	}
-	_, writeErr := vaultClient.Logical().Write(secret.Spec.Path, decryptedSecretData)
-	if writeErr != nil {
-		return writeErr
+	_, err = vaultClient.Logical().Write(secret.Spec.Path, decryptedSecretData)
+	if err != nil {
+		return err
 	}
 	return nil
 }

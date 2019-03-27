@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/client-go/tools/record"
+
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -40,6 +43,7 @@ const (
 )
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
+var rec record.EventRecorder
 
 /**
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
@@ -49,6 +53,7 @@ var log = logf.Log.WithName("controller_kmsvaultsecret")
 // Add creates a new KMSVaultSecret Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
+	rec = mgr.GetRecorder("kms-vault-controller")
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -112,17 +117,18 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 	vaultClient, err := getAuthenticatedVaultClient(instance.Spec.VaultAuthMethod)
 	if err != nil {
 		reqLogger.Error(err, "Error getting authenticated Vault client")
-		return reconcile.Result{}, err
+		return reconcile.Result{RequeueAfter: time.Second * 15}, err
 	}
-	writeErr := kvWriter(instance.Spec.KVSettings.EngineVersion).write(instance, vaultClient)
-	if writeErr != nil {
+	err = kvWriter(instance.Spec.KVSettings.EngineVersion).write(instance, vaultClient)
+	if err != nil {
 		reqLogger.Error(err, "Error writing secret to Vault")
-		return reconcile.Result{}, writeErr
-	} else {
-		reqLogger.Info(fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
+		return reconcile.Result{RequeueAfter: time.Second * 15}, err
 	}
-	instance.Status.Created = true
-	r.client.Status().Update(context.TODO(), instance)
+	if !instance.Status.Created {
+		instance.Status.Created = true
+		rec.Event(instance, corev1.EventTypeNormal, "SecretCreated", fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
+		r.client.Status().Update(context.TODO(), instance)
+	}
 	return reconcile.Result{RequeueAfter: time.Minute * 2}, nil
 }
 
@@ -173,9 +179,9 @@ func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
 
 func kvWriter(kvVersion string) KVWriter {
 	switch kvVersion {
-	case KVv1:
-		return KVv1Writer{}
-	default:
+	case KVv2:
 		return KVv2Writer{}
+	default:
+		return KVv1Writer{}
 	}
 }

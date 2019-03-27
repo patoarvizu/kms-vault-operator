@@ -35,9 +35,9 @@ func (KVv2 KVv2Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *va
 			"cas": secret.Spec.KVSettings.CASIndex,
 		},
 	}
-	_, writeErr := vaultClient.Logical().Write(secret.Spec.Path, writeData)
-	if writeErr != nil {
-		return writeErr
+	_, err = vaultClient.Logical().Write(secret.Spec.Path, writeData)
+	if err != nil {
+		return err
 	}
 	return nil
 }
