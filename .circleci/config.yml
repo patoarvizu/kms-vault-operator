@@ -1,0 +1,37 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          OPERATOR_SDK_VERSION: 0.6.0
+    working_directory: /go/src/github.com/patoarvizu/kms-vault-operator
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install operator-sdk
+          command: |
+            curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o /go/bin/operator-sdk
+            chmod +x /go/bin/operator-sdk
+      - run:
+          name: Install dependencies
+          command: dep ensure -v
+      - run:
+          name: Build container
+          command: |
+            echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
+            operator-sdk build patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            VERSION=${CIRCLE_TAG:-v0.0.0}
+            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
+            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
+            docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            docker push patoarvizu/kms-vault-operator:$VERSION
+            docker push patoarvizu/kms-vault-operator:latest
+
+workflows:
+  version: 2
+  build-operator:
+    jobs:
+      - build
