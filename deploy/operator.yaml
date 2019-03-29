@@ -16,10 +16,9 @@ spec:
       containers:
         - name: kms-vault-operator
           # Replace this with the built image name
-          image: patoarvizu/kms-vault-operator:first_version
+          image: patoarvizu/kms-vault-operator:latest
           command:
           - kms-vault-operator
-          imagePullPolicy: Never
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
