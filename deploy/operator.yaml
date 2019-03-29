@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kms-vault-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: kms-vault-operator
+  template:
+    metadata:
+      labels:
+        name: kms-vault-operator
+    spec:
+      serviceAccountName: kms-vault-operator
+      containers:
+        - name: kms-vault-operator
+          # Replace this with the built image name
+          image: patoarvizu/kms-vault-operator:latest
+          command:
+          - kms-vault-operator
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "kms-vault-operator"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_REGION
+              value: us-east-1
+            - name: VAULT_ADDR
+              value: "https://vault:8200"
+            - name: VAULT_SKIP_VERIFY
+              value: "true"
