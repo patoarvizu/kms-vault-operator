@@ -1,4 +1,7 @@
 # KMS Vault operator
+
+[![CircleCI](https://circleci.com/gh/patoarvizu/kms-vault-operator.svg?style=svg)](https://circleci.com/gh/patoarvizu/kms-vault-operator)
+
 <!-- TOC -->
 
 - [KMS Vault operator](#kms-vault-operator)
