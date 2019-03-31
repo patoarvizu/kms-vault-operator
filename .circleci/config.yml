@@ -41,7 +41,9 @@ jobs:
             - /go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
-          command: sudo -E minikube start --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC --extra-config=kubelet.cgroup-driver=systemd
+          command: |
+            docker system info --format '{{.CgroupDriver}}'
+            sudo -E minikube start --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC --extra-config=kubelet.cgroup-driver=$(docker system info --format '{{.CgroupDriver}}')
       - run:
           name: Build container
           command: |
