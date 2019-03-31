@@ -29,7 +29,6 @@ jobs:
             curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v0.35.0/minikube-linux-amd64"
             chmod +x minikube
             sudo mv minikube /usr/local/bin/
-            minikube version
       - restore_cache:
           keys:
             - kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
@@ -40,6 +39,9 @@ jobs:
           key: kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
           paths:
             - /go/src/github.com/patoarvizu/kms-vault-operator/vendor
+      - run:
+          name: Run minikube
+          command: sudo -E minikube --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
       - run:
           name: Build container
           command: |
