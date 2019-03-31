@@ -18,3 +18,8 @@ func (KVv1 KVv1Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *va
 	}
 	return nil
 }
+
+func (KVv1 KVv1Writer) delete(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *vaultapi.Client) error {
+	_, err := vaultClient.Logical().Delete(secret.Spec.Path)
+	return err
+}

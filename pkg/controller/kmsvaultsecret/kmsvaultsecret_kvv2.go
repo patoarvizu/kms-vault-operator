@@ -3,6 +3,7 @@ package kmsvaultsecret
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	vaultapi "github.com/hashicorp/vault/api"
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
@@ -40,4 +41,10 @@ func (KVv2 KVv2Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *va
 		return err
 	}
 	return nil
+}
+
+func (KVv2 KVv2Writer) delete(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *vaultapi.Client) error {
+	deletePath := strings.Replace(secret.Spec.Path, "secret/data/", "secret/metadata/", 1)
+	_, err := vaultClient.Logical().Delete(deletePath)
+	return err
 }

@@ -33,6 +33,7 @@ type VaultAuthMethod interface {
 
 type KVWriter interface {
 	write(*k8sv1alpha1.KMSVaultSecret, *vaultapi.Client) error
+	delete(*k8sv1alpha1.KMSVaultSecret, *vaultapi.Client) error
 }
 
 const (
@@ -40,6 +41,7 @@ const (
 	TokenAuthenticationMethod string = "token"
 	KVv1                      string = "v1"
 	KVv2                      string = "v2"
+	DeletedFinalizer          string = "delete.k8s.patoarvizu.dev"
 )
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
@@ -93,7 +95,21 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{RequeueAfter: time.Second * 15}, err
 	}
-	err = kvWriter(instance.Spec.KVSettings.EngineVersion).write(instance, vaultClient)
+
+	writer := kvWriter(instance.Spec.KVSettings.EngineVersion)
+	if instance.ObjectMeta.DeletionTimestamp != nil {
+		reqLogger.Info("Resource deleted, cleaning up")
+		err = writer.delete(instance, vaultClient)
+		if err != nil {
+			reqLogger.Error(err, "Error deleting secret from Vault")
+			return reconcile.Result{}, err
+		}
+		instance.Finalizers = removeFinalizer(instance.Finalizers, DeletedFinalizer)
+		r.client.Update(context.TODO(), instance)
+		return reconcile.Result{}, nil
+	}
+
+	err = writer.write(instance, vaultClient)
 	if err != nil {
 		reqLogger.Error(err, "Error writing secret to Vault")
 		return reconcile.Result{RequeueAfter: time.Second * 15}, err
@@ -104,6 +120,17 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		r.client.Status().Update(context.TODO(), instance)
 	}
 	return reconcile.Result{RequeueAfter: time.Minute * 2}, nil
+}
+
+func removeFinalizer(allFinalizers []string, finalizer string) []string {
+	var result []string
+	for _, f := range allFinalizers {
+		if f == finalizer {
+			continue
+		}
+		result = append(result, f)
+	}
+	return result
 }
 
 func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error) {

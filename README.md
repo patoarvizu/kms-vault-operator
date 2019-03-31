@@ -116,7 +116,7 @@ Because the controller is designed to write the secret to Vault continuously, it
 
 #### Removing secrets when a `KMSVaultSecret` is deleted.
 
-The kms-vault-operator controller doesn't implement any [Kubernetes finalizers](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers), so deleting the custom resource won't delete the secret from Vault.
+The kms-vault-operator controller supports removing secrets from Vault by setting `delete.k8s.patoarvizu.dev` as a [Kubernetes finalizer](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers). Support for this for K/V V1 is simple since secrets are not versioned, but when the secret is for K/V V2, deleting a `KMSVaultSecret` object will delete **ALL** of its versions and metadata from Vault, so handle it with care. If the secret is V2, the path for the `DELETE` operation is the same as the input one, replacing `secret/data/` with `secret/metadata/`. There is currently no support for removing a single version of a K/V V2 secret.
 
 #### KMS encryption context is not supported (as of this version)
 
