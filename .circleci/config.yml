@@ -15,6 +15,15 @@ jobs:
           command: |
             curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o /go/bin/operator-sdk
             chmod +x /go/bin/operator-sdk
+      - run:
+          name: Install kubectl
+          command: |
+            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+            mkdir -p "${HOME}/.kube"
+            touch "${HOME}/.kube/config"
+            kubectl version -c
       - restore_cache:
           keys:
             - kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
