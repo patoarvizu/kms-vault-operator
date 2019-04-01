@@ -72,7 +72,10 @@ jobs:
           name: Deploy Vault cluster
           command: |
             kubectl apply -f test/manifests/vault-operator.yaml
-            kubectl get pods
+            while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
+              kubectl get pods
+              sleep 3
+            done
       - run:
           name: Build container
           command: |
