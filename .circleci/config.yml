@@ -67,6 +67,12 @@ jobs:
           name: Run minikube
           command: |
             sudo -E minikube start --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
+            minikube update-context
+      - run:
+          name: Deploy Vault cluster
+          command: |
+            kubectl apply -f test/manifests/vault-operator.yaml
+            kubectl get pods
       - run:
           name: Build container
           command: |
