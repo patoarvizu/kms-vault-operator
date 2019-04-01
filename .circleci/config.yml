@@ -42,7 +42,7 @@ jobs:
       - run:
           name: Install minikube
           command: |
-            curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v0.35.0/minikube-linux-amd64"
+            curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v1.0.0/minikube-linux-amd64"
             chmod +x minikube
             sudo mv minikube /usr/local/bin/
       - restore_cache:
