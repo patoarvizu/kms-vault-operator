@@ -47,7 +47,9 @@ jobs:
             - kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
       - run:
           name: Install dependencies
-          command: dep ensure -v
+          command: |
+            echo ${PATH}
+            dep ensure -v
       - save_cache:
           key: kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
           paths:
