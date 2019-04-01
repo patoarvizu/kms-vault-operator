@@ -45,7 +45,7 @@ jobs:
             curl -Lo crictl-v1.11.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.11.0/crictl-v1.11.0-linux-amd64.tar.gz"
             tar xf crictl-v1.11.0-linux-amd64.tar.gz
             chmod +x crictl
-            mv crictl ${HOME}/go/bin/
+            sudo mv crictl /usr/local/bin/
       - run:
           name: Install minikube
           command: |
