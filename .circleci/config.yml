@@ -15,7 +15,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
+            - kms-vault-operator-{{ checksum "Gopkg.lock" }}
             - kms-vault-operator-minikube
       - run:
           name: Install golang
