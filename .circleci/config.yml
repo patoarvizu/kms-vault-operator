@@ -16,11 +16,16 @@ jobs:
             sudo rm -rf /usr/local/go
             curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.11.6.linux-amd64.tar.gz"
             sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
+            mkdir -p ${HOME}/go/bin
             echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
+      - run:
+          name: Install dep
+          command: |
+            curl -L https://github.com/golang/dep/releases/download/v0.5.1/dep-linux-amd64 -o ${HOME}/go/bin/dep
+            chmod +x ${HOME}/go/bin/dep
       - run:
           name: Install operator-sdk
           command: |
-            mkdir -p ${HOME}/go/bin/
             curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
             chmod +x ${HOME}/go/bin/operator-sdk
       - run:
