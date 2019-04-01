@@ -2,14 +2,20 @@ version: 2.1
 
 jobs:
   build:
-    docker:
-      - image: circleci/golang:1.11-stretch
+    machine:
+        image: ubuntu-1604:201903-01
         environment:
           OPERATOR_SDK_VERSION: 0.6.0
-    working_directory: /go/src/github.com/patoarvizu/kms-vault-operator
+    working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - checkout
-      - setup_remote_docker
+      - run:
+          name: Install golang
+          command: |
+            sudo rm -rf /usr/local/go
+            curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go${1.11.0}.linux-amd64.tar.gz"
+            sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
+            echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
       - run:
           name: Install operator-sdk
           command: |
@@ -42,7 +48,7 @@ jobs:
       - run:
           name: Run minikube
           command: |
-            sudo -E minikube start --bootstrapper=localkube --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC --extra-config=kubelet.cgroup-driver=systemd
+            sudo -E minikube start --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
       - run:
           name: Build container
           command: |
