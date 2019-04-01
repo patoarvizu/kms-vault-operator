@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.11
+      - image: circleci/golang:1.11-stretch
         environment:
           OPERATOR_SDK_VERSION: 0.6.0
     working_directory: /go/src/github.com/patoarvizu/kms-vault-operator
