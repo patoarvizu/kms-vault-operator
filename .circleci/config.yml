@@ -56,7 +56,7 @@ jobs:
       - save_cache:
           key: kms-vault-operator-{{ arch }}-{{ checksum "Gopkg.lock" }}
           paths:
-            - /go/src/github.com/patoarvizu/kms-vault-operator/vendor
+            - ${HOME}/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
           command: |
