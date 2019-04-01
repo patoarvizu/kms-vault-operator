@@ -42,7 +42,7 @@ jobs:
       - run:
           name: Run minikube
           command: |
-            sudo -E minikube start --bootstrapper=localkube --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC --extra-config=kubelet.cgroup-driver=cgroupfs
+            sudo -E minikube start --bootstrapper=localkube --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC --extra-config=kubelet.cgroup-driver=systemd
       - run:
           name: Build container
           command: |
