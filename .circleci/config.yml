@@ -7,6 +7,9 @@ jobs:
         image: ubuntu-1604:201903-01
     environment:
       OPERATOR_SDK_VERSION: 0.6.0
+      MINIKUBE_HOME: /home/circleci
+      CHANGE_MINIKUBE_NONE_USER: true
+      GOPATH: /home/circleci/go
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - checkout
@@ -17,7 +20,6 @@ jobs:
             curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.11.6.linux-amd64.tar.gz"
             sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
             mkdir -p ${HOME}/go/bin
-            echo 'export GOPATH=${HOME}/go' >> "${BASH_ENV}"
             echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
       - run:
           name: Install dep
