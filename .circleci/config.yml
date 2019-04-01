@@ -14,7 +14,7 @@ jobs:
           name: Install golang
           command: |
             sudo rm -rf /usr/local/go
-            curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go${1.11.0}.linux-amd64.tar.gz"
+            curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.11.0.linux-amd64.tar.gz"
             sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
             echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
       - run:
