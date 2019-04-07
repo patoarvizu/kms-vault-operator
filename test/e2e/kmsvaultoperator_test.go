@@ -29,6 +29,10 @@ func TestKMSVaultSecretV1(t *testing.T) {
 			Kind:       "Secret",
 			APIVersion: "v1",
 		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-secrets",
+			Namespace: namespace,
+		},
 		StringData: map[string]string{
 			"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
 			"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
