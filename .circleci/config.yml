@@ -68,12 +68,12 @@ jobs:
       - run:
           name: Deploy Vault cluster
           command: |
-            kubectl apply -f test/manifests/vault-operator.yaml
+            kubectl apply -f test/manifests/vault/vault-operator.yaml
             while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "name=vault-operator"
             done
-            kubectl apply -f test/manifests/vault-cluster.yaml
+            kubectl apply -f test/manifests/vault/vault-cluster.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "app=vault"
