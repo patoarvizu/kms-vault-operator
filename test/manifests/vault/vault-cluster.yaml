@@ -2,7 +2,7 @@ apiVersion: "vault.banzaicloud.com/v1alpha1"
 kind: Vault
 metadata:
   name: vault
-  namespace: operator-test
+  namespace: default
 spec:
   size: 1
   image: vault:1.0.0
