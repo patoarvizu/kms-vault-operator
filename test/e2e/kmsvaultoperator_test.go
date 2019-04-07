@@ -100,7 +100,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 
 	r, err := vaultClient.Logical().Read("secret/test-secret")
 	if err != nil {
-		t.Fatal("Could not read secret from Vault")
+		t.Fatalf("Could not read secret from Vault: %v", err)
 	}
 
 	if r.Data["Hello"] != "World" {
