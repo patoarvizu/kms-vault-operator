@@ -79,12 +79,6 @@ jobs:
               kubectl get pods -l "app=vault"
             done
       - run:
-          name: Run tests
-          command : |
-            eval $(minikube docker-env)
-            operator-sdk build patoarvizu/kms-vault-operator:latest
-            operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml
-      - run:
           name: Build container
           command: |
             echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
