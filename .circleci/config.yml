@@ -80,7 +80,7 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
-            echo 'export VAULT_ADDR=$(minikube service --https --url vault-ext)' >> "${BASH_ENV}"
+            echo 'export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)' >> "${BASH_ENV}"
             echo 'export VAULT_SKIP_VERIFY=true' >> "${BASH_ENV}"
       - run:
           name: Run tests
