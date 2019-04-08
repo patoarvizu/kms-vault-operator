@@ -108,7 +108,11 @@ func TestKMSVaultSecretV1(t *testing.T) {
 		t.Errorf("Vault result is empty")
 	}
 
-	if r.Data["Hello"] != "World" {
-		t.Errorf("Encrypted string wasn't decrypted correctly")
+	if val, ok := r.Data["Hello"]; ok {
+		if val != "World" {
+			t.Errorf("Encrypted string wasn't decrypted correctly")
+		}
+	} else {
+		t.Errorf("Secret wasn't successfully put in Vault")
 	}
 }
