@@ -78,12 +78,12 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
+            echo 'export VAULT_ADDR=$(minikube service --https --url vault-ext)' >> "${BASH_ENV}"
+            echo 'export VAULT_SKIP_VERIFY=true' >> "${BASH_ENV}"
       - run:
           name: Run tests
           command : |
             operator-sdk build patoarvizu/kms-vault-operator:latest
-            export VAULT_ADDR=https://$(minikube ip):8200
-            export VAULT_SKIP_VERIFY=true
             operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml
       - run:
           name: Build container
