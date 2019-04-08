@@ -104,7 +104,11 @@ func TestKMSVaultSecretV1(t *testing.T) {
 		t.Fatalf("Could not read secret from Vault: %v", err)
 	}
 
+	if r == nil {
+		t.Errorf("Vault result is empty")
+	}
+
 	if r.Data["Hello"] != "World" {
-		t.Error("Encrypted string wasn't decrypted correctly")
+		t.Errorf("Encrypted string wasn't decrypted correctly")
 	}
 }
