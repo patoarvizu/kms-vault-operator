@@ -97,6 +97,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
 	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
+	vaultClient.Auth()
 
 	r, err := vaultClient.Logical().Read("secret/test-secret")
 	if err != nil {
