@@ -62,11 +62,19 @@ jobs:
           name: Install dependencies
           command: |
             dep ensure -v
+      - save_cache:
+          key: kms-vault-operator-{{ checksum "Gopkg.lock" }}
+          paths:
+            - ${HOME}/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
           command: |
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
+      - save_cache:
+          key: kms-vault-operator-minikube
+          paths:
+            - ${HOME}/.minikube
       - run:
           name: Deploy Vault cluster
           command: |
@@ -98,14 +106,6 @@ jobs:
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             docker push patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:latest
-      - save_cache:
-          key: kms-vault-operator-{{ checksum "Gopkg.lock" }}
-          paths:
-            - ${HOME}/go/src/github.com/patoarvizu/kms-vault-operator/vendor
-      - save_cache:
-          key: kms-vault-operator-minikube
-          paths:
-            - ${HOME}/.minikube
 
 workflows:
   version: 2
