@@ -88,6 +88,8 @@ func TestKMSVaultSecretV1(t *testing.T) {
 		t.Fatalf("failed to create secret: %v", err)
 	}
 
+	time.Sleep(time.Minute)
+
 	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets(namespace).Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("Failed to get Vault root token: %v", err)
