@@ -7,8 +7,10 @@ jobs:
         image: circleci/classic:201808-01
     environment:
       OPERATOR_SDK_VERSION: 0.6.0
-      MINIKUBE_HOME: /home/circleci
-      CHANGE_MINIKUBE_NONE_USER: true
+      MINIKUBE_HOME: '/home/circleci'
+      MINIKUBE_WANTUPDATENOTIFICATION: 'false'
+      MINIKUBE_WANTREPORTERRORPROMPT: 'false'
+      CHANGE_MINIKUBE_NONE_USER: 'true'
       GOPATH: /home/circleci/go
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
@@ -63,7 +65,7 @@ jobs:
       - run:
           name: Run minikube
           command: |
-            sudo -E minikube start --vm-driver=none --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
+            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
       - run:
           name: Deploy Vault cluster
