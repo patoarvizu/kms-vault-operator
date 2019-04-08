@@ -82,6 +82,8 @@ jobs:
           name: Run tests
           command : |
             operator-sdk build patoarvizu/kms-vault-operator:latest
+            export VAULT_ADDR=https://$(minikube ip):8200
+            export VAULT_SKIP_VERIFY=true
             operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml
       - run:
           name: Build container
