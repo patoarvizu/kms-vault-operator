@@ -189,7 +189,7 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 		},
 	}
 
-	framework.Global.Client.Create(context.TODO(), secret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+	framework.Global.Client.Create(context.TODO(), secret, nil)
 	if err != nil {
 		t.Fatalf("failed to create secret: %v", err)
 	}
