@@ -50,19 +50,16 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 	}
 }
 
-func TestKMSVaultSecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-	setup(t, ctx)
-
+func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, o *framework.CleanupOptions) *operator.KMSVaultSecret {
 	secret := &operator.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-secret",
-			Namespace: "default",
+			Name:       "test-secret",
+			Namespace:  "default",
+			Finalizers: finalizers,
 		},
 		Spec: operator.KMSVaultSecretSpec{
 			Path:            "secret/test-secret",
@@ -79,12 +76,20 @@ func TestKMSVaultSecretV1(t *testing.T) {
 		},
 	}
 
-	err := framework.Global.Client.Create(context.TODO(), secret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+	err := framework.Global.Client.Create(context.TODO(), secret, o)
 	if err != nil {
 		t.Fatalf("failed to create secret: %v", err)
 	}
+	time.Sleep(time.Second * 3)
+	return secret
+}
 
-	time.Sleep(time.Second * 5)
+func TestKMSVaultSecretV1(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	defer ctx.Cleanup()
+	setup(t, ctx)
+
+	createKMSVaultSecret([]string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
 
 	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
@@ -121,39 +126,7 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 	defer ctx.Cleanup()
 	setup(t, ctx)
 
-	secret := &operator.KMSVaultSecret{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "KMSVaultSecret",
-			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-secret",
-			Namespace: "default",
-			Finalizers: []string{
-				"delete.k8s.patoarvizu.dev",
-			},
-		},
-		Spec: operator.KMSVaultSecretSpec{
-			Path:            "secret/test-secret",
-			VaultAuthMethod: "k8s",
-			KVSettings: operator.KVSettings{
-				EngineVersion: "v1",
-			},
-			Secrets: []operator.Secret{
-				operator.Secret{
-					Key:             "Hello",
-					EncryptedSecret: "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg==",
-				},
-			},
-		},
-	}
-
-	err := framework.Global.Client.Create(context.TODO(), secret, nil)
-	if err != nil {
-		t.Fatalf("failed to create secret: %v", err)
-	}
-
-	time.Sleep(time.Second * 5)
+	secret := createKMSVaultSecret([]string{"delete.k8s.patoarvizu.dev"}, t, ctx, nil)
 
 	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
