@@ -17,6 +17,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg=="
+
 func setup(t *testing.T, ctx *test.TestCtx) {
 	awsSecret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
@@ -50,7 +52,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 	}
 }
 
-func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, o *framework.CleanupOptions) *operator.KMSVaultSecret {
+func createKMSVaultSecret(encryptedText string, finalizers []string, t *testing.T, ctx *test.TestCtx, o *framework.CleanupOptions) *operator.KMSVaultSecret {
 	secret := &operator.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
@@ -70,7 +72,7 @@ func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, 
 			Secrets: []operator.Secret{
 				operator.Secret{
 					Key:             "Hello",
-					EncryptedSecret: "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg==",
+					EncryptedSecret: encryptedText,
 				},
 			},
 		},
@@ -84,7 +86,15 @@ func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, 
 	return secret
 }
 
-func validateSecret(t *testing.T) {
+func cleanUpVaultSecret(t *testing.T) {
+	vaultClient, err := authenticatedVaultClient()
+	if err != nil {
+		t.Fatalf("Failed to get Vault client: %v", err)
+	}
+	vaultClient.Logical().Delete("secret/test-secret")
+}
+
+func validateSecretExists(t *testing.T) {
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -108,6 +118,21 @@ func validateSecret(t *testing.T) {
 	}
 }
 
+func validateSecretDoesntExist(secret *operator.KMSVaultSecret, t *testing.T) {
+	vaultClient, err := authenticatedVaultClient()
+	if err != nil {
+		t.Fatalf("Failed to get Vault client: %v", err)
+	}
+
+	r, err := vaultClient.Logical().Read("secret/test-secret")
+	if err != nil {
+		t.Fatalf("Could not read secret from Vault: %v", err)
+	}
+	if r != nil {
+		t.Errorf("Vault secret should not exist")
+	}
+}
+
 func authenticatedVaultClient() (*vaultapi.Client, error) {
 	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
@@ -128,9 +153,21 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	defer ctx.Cleanup()
 	setup(t, ctx)
 
-	createKMSVaultSecret([]string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+	createKMSVaultSecret(encryptedSecret, []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
 
-	validateSecret(t)
+	validateSecretExists(t)
+
+	cleanUpVaultSecret(t)
+}
+
+func TestUnencryptedSecret(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	defer ctx.Cleanup()
+	setup(t, ctx)
+
+	secret := createKMSVaultSecret("UnencryptedSecret", []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+
+	validateSecretDoesntExist(secret, t)
 }
 
 func TestKMSVaultSecretFinalizers(t *testing.T) {
@@ -138,23 +175,12 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 	defer ctx.Cleanup()
 	setup(t, ctx)
 
-	secret := createKMSVaultSecret([]string{"delete.k8s.patoarvizu.dev"}, t, ctx, nil)
+	secret := createKMSVaultSecret(encryptedSecret, []string{"delete.k8s.patoarvizu.dev"}, t, ctx, nil)
 
-	validateSecret(t)
-
-	vaultClient, err := authenticatedVaultClient()
-	if err != nil {
-		t.Fatalf("Failed to get Vault client: %v", err)
-	}
+	validateSecretExists(t)
 
 	framework.Global.Client.Delete(context.TODO(), secret)
 	time.Sleep(time.Second * 3)
 
-	r, err := vaultClient.Logical().Read("secret/test-secret")
-	if err != nil {
-		t.Fatalf("Could not read secret from Vault: %v", err)
-	}
-	if r != nil {
-		t.Errorf("Vault secret should have been deleted")
-	}
+	validateSecretDoesntExist(secret, t)
 }
