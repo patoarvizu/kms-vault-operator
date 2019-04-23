@@ -95,6 +95,7 @@ func cleanUpVaultSecret(t *testing.T) {
 }
 
 func validateSecretExists(t *testing.T) {
+	time.Sleep(time.Second * 3)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -119,6 +120,7 @@ func validateSecretExists(t *testing.T) {
 }
 
 func validateSecretDoesntExist(secret *operator.KMSVaultSecret, t *testing.T) {
+	time.Sleep(time.Second * 3)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -180,7 +182,6 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 	validateSecretExists(t)
 
 	framework.Global.Client.Delete(context.TODO(), secret)
-	time.Sleep(time.Second * 3)
 
 	validateSecretDoesntExist(secret, t)
 }
