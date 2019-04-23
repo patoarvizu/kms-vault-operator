@@ -101,6 +101,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
 	vaultClient.Auth()
 
+	time.Sleep(time.Second * 5)
 	r, err := vaultClient.Logical().Read("secret/test-secret")
 	if err != nil {
 		t.Fatalf("Could not read secret from Vault: %v", err)
