@@ -84,13 +84,7 @@ func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, 
 	return secret
 }
 
-func TestKMSVaultSecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-	setup(t, ctx)
-
-	createKMSVaultSecret([]string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
-
+func validateSecret(t *testing.T) {
 	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
 		t.Fatalf("Failed to get Vault root token: %v", err)
@@ -102,7 +96,6 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
 	vaultClient.Auth()
 
-	time.Sleep(time.Second * 5)
 	r, err := vaultClient.Logical().Read("secret/test-secret")
 	if err != nil {
 		t.Fatalf("Could not read secret from Vault: %v", err)
@@ -121,6 +114,16 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	}
 }
 
+func TestKMSVaultSecretV1(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	defer ctx.Cleanup()
+	setup(t, ctx)
+
+	createKMSVaultSecret([]string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+
+	validateSecret(t)
+}
+
 func TestKMSVaultSecretFinalizers(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
@@ -128,33 +131,7 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 
 	secret := createKMSVaultSecret([]string{"delete.k8s.patoarvizu.dev"}, t, ctx, nil)
 
-	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
-	if err != nil {
-		t.Fatalf("Failed to get Vault root token: %v", err)
-	}
-	vaultClient, err := vaultapi.NewClient(vaultapi.DefaultConfig())
-	if err != nil {
-		t.Fatalf("Failed to get Vault client: %v", err)
-	}
-	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
-	vaultClient.Auth()
-
-	r, err := vaultClient.Logical().Read("secret/test-secret")
-	if err != nil {
-		t.Fatalf("Could not read secret from Vault: %v", err)
-	}
-
-	if r == nil {
-		t.Errorf("Vault result is empty")
-	}
-
-	if val, ok := r.Data["Hello"]; ok {
-		if val != "World" {
-			t.Errorf("Encrypted string wasn't decrypted correctly")
-		}
-	} else {
-		t.Errorf("Secret wasn't successfully put in Vault")
-	}
+	validateSecret(t)
 
 	framework.Global.Client.Delete(context.TODO(), secret)
 }
