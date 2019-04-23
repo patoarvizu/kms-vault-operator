@@ -157,7 +157,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 
 	validateSecretExists(t)
 
-	cleanUpVaultSecret(t)
+	defer cleanUpVaultSecret(t)
 }
 
 func TestUnencryptedSecret(t *testing.T) {
