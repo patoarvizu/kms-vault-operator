@@ -34,9 +34,9 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 			"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		},
 	}
-	framework.Global.Client.Create(context.TODO(), awsSecret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
-	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
-	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "default", "kms-vault-operator", 1, time.Second*5, time.Second*30)
+	framework.Global.Client.Create(context.TODO(), awsSecret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "default", "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,6 @@ func createKMSVaultSecret(encryptedText string, finalizers []string, t *testing.
 	if err != nil {
 		t.Fatalf("failed to create secret: %v", err)
 	}
-	time.Sleep(time.Second * 3)
 	return secret
 }
 
@@ -95,7 +94,7 @@ func cleanUpVaultSecret(t *testing.T) {
 }
 
 func validateSecretExists(t *testing.T) {
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 5)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -120,7 +119,7 @@ func validateSecretExists(t *testing.T) {
 }
 
 func validateSecretDoesntExist(secret *operator.KMSVaultSecret, t *testing.T) {
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 5)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -155,7 +154,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	defer ctx.Cleanup()
 	setup(t, ctx)
 
-	createKMSVaultSecret(encryptedSecret, []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+	createKMSVaultSecret(encryptedSecret, []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 
 	validateSecretExists(t)
 
@@ -167,7 +166,7 @@ func TestUnencryptedSecret(t *testing.T) {
 	defer ctx.Cleanup()
 	setup(t, ctx)
 
-	secret := createKMSVaultSecret("UnencryptedSecret", []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 5, RetryInterval: time.Second * 1})
+	secret := createKMSVaultSecret("UnencryptedSecret", []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 
 	validateSecretDoesntExist(secret, t)
 }
