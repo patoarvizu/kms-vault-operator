@@ -85,16 +85,10 @@ func createKMSVaultSecret(finalizers []string, t *testing.T, ctx *test.TestCtx, 
 }
 
 func validateSecret(t *testing.T) {
-	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
-	if err != nil {
-		t.Fatalf("Failed to get Vault root token: %v", err)
-	}
-	vaultClient, err := vaultapi.NewClient(vaultapi.DefaultConfig())
+	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
-	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
-	vaultClient.Auth()
 
 	r, err := vaultClient.Logical().Read("secret/test-secret")
 	if err != nil {
@@ -112,6 +106,21 @@ func validateSecret(t *testing.T) {
 	} else {
 		t.Errorf("Secret wasn't successfully put in Vault")
 	}
+}
+
+func authenticatedVaultClient() (*vaultapi.Client, error) {
+	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	vaultClient, err := vaultapi.NewClient(vaultapi.DefaultConfig())
+	if err != nil {
+		return nil, err
+	}
+	vaultClient.SetToken(string(vaultSecret.Data["vault-root"]))
+	vaultClient.Auth()
+
+	return vaultClient, nil
 }
 
 func TestKMSVaultSecretV1(t *testing.T) {
@@ -133,5 +142,19 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 
 	validateSecret(t)
 
+	vaultClient, err := authenticatedVaultClient()
+	if err != nil {
+		t.Fatalf("Failed to get Vault client: %v", err)
+	}
+
 	framework.Global.Client.Delete(context.TODO(), secret)
+	time.Sleep(time.Second * 3)
+
+	r, err := vaultClient.Logical().Read("secret/test-secret")
+	if err != nil {
+		t.Fatalf("Could not read secret from Vault: %v", err)
+	}
+	if r != nil {
+		t.Errorf("Vault secret should have been deleted")
+	}
 }
