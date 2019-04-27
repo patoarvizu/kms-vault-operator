@@ -151,29 +151,30 @@ func authenticatedVaultClient() (*vaultapi.Client, error) {
 
 func TestKMSVaultSecretV1(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
 	setup(t, ctx)
 
 	createKMSVaultSecret(encryptedSecret, []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 
 	validateSecretExists(t)
 
-	defer cleanUpVaultSecret(t)
+	cleanUpVaultSecret(t)
+
+	ctx.Cleanup()
 }
 
 func TestUnencryptedSecret(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
 	setup(t, ctx)
 
 	secret := createKMSVaultSecret("UnencryptedSecret", []string{}, t, ctx, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 
 	validateSecretDoesntExist(secret, t)
+
+	ctx.Cleanup()
 }
 
 func TestKMSVaultSecretFinalizers(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
 	setup(t, ctx)
 
 	secret := createKMSVaultSecret(encryptedSecret, []string{"delete.k8s.patoarvizu.dev"}, t, ctx, nil)
@@ -183,4 +184,6 @@ func TestKMSVaultSecretFinalizers(t *testing.T) {
 	framework.Global.Client.Delete(context.TODO(), secret)
 
 	validateSecretDoesntExist(secret, t)
+
+	ctx.Cleanup()
 }
