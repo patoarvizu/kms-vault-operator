@@ -88,7 +88,7 @@ jobs:
       - run:
           name: Run tests v1
           command : |
-            kubectl apply -f test/manifests/vault/vault-cluster.yaml
+            kubectl apply -f test/manifests/vault/vault-cluster-v1.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "app=vault"
