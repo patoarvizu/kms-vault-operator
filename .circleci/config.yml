@@ -96,6 +96,18 @@ jobs:
             export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
             operator-sdk build patoarvizu/kms-vault-operator:latest
             operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v run .*V1'
+            kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
+      - run:
+          name: Run tests v2
+          command : |
+            kubectl apply -f test/manifests/vault/vault-cluster-v2.yaml
+            while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
+              sleep 3
+              kubectl get pods -l "app=vault"
+            done
+            export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
+            operator-sdk build patoarvizu/kms-vault-operator:latest
+            operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v run .*V2'
       - run:
           name: Build container
           command: |
