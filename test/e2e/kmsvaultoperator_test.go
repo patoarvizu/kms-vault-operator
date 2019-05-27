@@ -162,7 +162,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestUnencryptedSecret(t *testing.T) {
+func TestUnencryptedSecretV1(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 
@@ -173,7 +173,7 @@ func TestUnencryptedSecret(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestKMSVaultSecretFinalizers(t *testing.T) {
+func TestKMSVaultSecretFinalizersV1(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 
