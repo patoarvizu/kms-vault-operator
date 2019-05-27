@@ -14,8 +14,7 @@ spec:
     spec: {}
   volumes:
     - name: vault-file
-      persistentVolumeClaim:
-        claimName: vault-file
+      emptyDir: {}
   volumeMounts:
     - name: vault-file
       mountPath: /vault/file
@@ -52,28 +51,3 @@ spec:
         description: General secrets.
         options:
           version: 1
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: vault-file
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vault-ext
-  namespace: default
-spec:
-  ports:
-  - port: 8200
-    protocol: TCP
-    targetPort: 8200
-  selector:
-    app: vault
-  type: LoadBalancer

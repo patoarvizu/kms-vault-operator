@@ -79,19 +79,20 @@ jobs:
       - run:
           name: Deploy Vault cluster
           command: |
+            kubectl apply -f test/manifests/vault/vault-external-service.yaml
             kubectl apply -f test/manifests/vault/vault-operator.yaml
             while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "name=vault-operator"
             done
+      - run:
+          name: Run tests v1
+          command : |
             kubectl apply -f test/manifests/vault/vault-cluster.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "app=vault"
             done
-      - run:
-          name: Run tests
-          command : |
             export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
             operator-sdk build patoarvizu/kms-vault-operator:latest
             operator-sdk test local ./test/e2e/ --namespace default --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v'
