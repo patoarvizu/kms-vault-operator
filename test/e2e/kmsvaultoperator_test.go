@@ -22,6 +22,10 @@ import (
 const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg=="
 
 func setup(t *testing.T, ctx *test.TestCtx) {
+	testNamespace, err := ctx.GetNamespace()
+	if err != nil {
+		t.Error(err)
+	}
 	awsSecret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
@@ -29,7 +33,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "aws-secrets",
-			Namespace: "default",
+			Namespace: testNamespace,
 		},
 		StringData: map[string]string{
 			"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
@@ -38,7 +42,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 	}
 	framework.Global.Client.Create(context.TODO(), awsSecret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
-	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "default", "kms-vault-operator", 1, time.Second*5, time.Second*60)
+	err = e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, testNamespace, "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,10 +107,10 @@ func validateSecretExists(t *testing.T) {
 	err = wait.Poll(time.Second*2, time.Second*30, func() (done bool, err error) {
 		r, err := vaultClient.Logical().Read("secret/test-secret")
 		if err != nil {
-			return false, nil
+			return false, err
 		}
 		if r == nil {
-			return false, errors.New("Vault result is empty")
+			return false, nil
 		}
 		if val, ok := r.Data["Hello"]; ok {
 			if val != "World" {
