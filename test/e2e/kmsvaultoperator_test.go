@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -15,6 +16,7 @@ import (
 	apis "github.com/patoarvizu/kms-vault-operator/pkg/apis"
 	operator "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg=="
@@ -94,43 +96,51 @@ func cleanUpVaultSecret(t *testing.T) {
 }
 
 func validateSecretExists(t *testing.T) {
-	time.Sleep(time.Second * 10)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
-
-	r, err := vaultClient.Logical().Read("secret/test-secret")
-	if err != nil {
-		t.Fatalf("Could not read secret from Vault: %v", err)
-	}
-
-	if r == nil {
-		t.Errorf("Vault result is empty")
-	}
-
-	if val, ok := r.Data["Hello"]; ok {
-		if val != "World" {
-			t.Errorf("Encrypted string wasn't decrypted correctly")
+	err = wait.Poll(time.Second*2, time.Second*30, func() (done bool, err error) {
+		r, err := vaultClient.Logical().Read("secret/test-secret")
+		if err != nil {
+			return false, nil
 		}
-	} else {
-		t.Errorf("Secret wasn't successfully put in Vault")
+		if r == nil {
+			return false, errors.New("Vault result is empty")
+		}
+		if val, ok := r.Data["Hello"]; ok {
+			if val != "World" {
+				return false, errors.New("Encrypted string wasn't decrypted correctly")
+			}
+		} else {
+			return false, errors.New("Secret wasn't successfully put in Vault")
+		}
+		return true, nil
+	})
+	if err != nil {
+		t.Error(err)
 	}
 }
 
 func validateSecretDoesntExist(secret *operator.KMSVaultSecret, t *testing.T) {
-	time.Sleep(time.Second * 10)
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
 
-	r, err := vaultClient.Logical().Read("secret/test-secret")
+	err = wait.Poll(time.Second*2, time.Second*30, func() (done bool, err error) {
+		r, err := vaultClient.Logical().Read("secret/test-secret")
+		if err != nil {
+			return false, err
+		}
+		if r == nil {
+			return true, nil
+		} else {
+			return false, errors.New("Vault secret should not exist")
+		}
+	})
 	if err != nil {
-		t.Fatalf("Could not read secret from Vault: %v", err)
-	}
-	if r != nil {
-		t.Errorf("Vault secret should not exist")
+		t.Error(err)
 	}
 }
 
