@@ -121,7 +121,7 @@ func validateSecretExists(secret *operator.KMSVaultSecret, t *testing.T) {
 		} else {
 			vaultData = r.Data["data"].(map[string]interface{})
 		}
-		if val, ok := vaultData["Hello"]; ok {
+		if val, ok := vaultData[secret.Spec.Secrets[0].Key]; ok {
 			if val != "World" {
 				return false, errors.New("Encrypted string wasn't decrypted correctly")
 			}
