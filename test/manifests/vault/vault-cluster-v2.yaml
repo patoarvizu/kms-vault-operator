@@ -1,0 +1,53 @@
+apiVersion: "vault.banzaicloud.com/v1alpha1"
+kind: Vault
+metadata:
+  name: vault
+  namespace: default
+spec:
+  size: 1
+  image: vault:1.0.0
+  bankVaultsImage: banzaicloud/bank-vaults:0.4.14
+  serviceAccount: vault
+  serviceType: ClusterIP
+  ingress:
+    annotations:
+    spec: {}
+  volumes:
+    - name: vault-file
+      emptyDir: {}
+  volumeMounts:
+    - name: vault-file
+      mountPath: /vault/file
+  unsealConfig:
+    kubernetes:
+      secretNamespace: default
+  config:
+    storage:
+      file:
+        path: "/vault/file"
+    listener:
+      tcp:
+        address: "0.0.0.0:8200"
+        tls_cert_file: /vault/tls/server.crt
+        tls_key_file: /vault/tls/server.key
+    ui: false
+  externalConfig:
+    policies:
+      - name: allow_secrets
+        rules: path "secret/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+          }
+    auth:
+      - type: kubernetes
+        roles:
+          - name: kms-vault-operator
+            bound_service_account_names: kms-vault-operator
+            bound_service_account_namespaces: default
+            policies: [ allow_secrets ]
+            ttl: 5m
+    secrets:
+      - path: secret
+        type: kv
+        description: General secrets.
+        options:
+          version: 2

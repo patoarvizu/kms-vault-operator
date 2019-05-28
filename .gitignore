@@ -76,3 +76,4 @@ tags
 ### VisualStudioCode ###
 .vscode/*
 .history
+vendor/
