@@ -20,6 +20,21 @@ jobs:
           root: /home/circleci
           paths:
             - go
+  install_dep:
+    machine:
+      enabled: true
+      image: circleci/classic:201808-01
+    working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
+    steps:
+      - run:
+          name: Install dep
+          command: |
+            curl -L https://github.com/golang/dep/releases/download/v0.5.1/dep-linux-amd64 -o ${HOME}/go/bin/dep
+            chmod +x ${HOME}/go/bin/dep
+      - persist_to_workspace:
+          root: /home/circleci
+          paths:
+            - go
   build:
     machine:
       enabled: true
@@ -42,16 +57,11 @@ jobs:
             - kms-vault-operator-{{ checksum "Gopkg.lock" }}
             - kms-vault-operator-minikube
       - run:
-          name: Install dep
-          command: |
-            curl -L https://github.com/golang/dep/releases/download/v0.5.1/dep-linux-amd64 -o ${HOME}/go/bin/dep
-            chmod +x ${HOME}/go/bin/dep
-            echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
-      - run:
           name: Install operator-sdk
           command: |
             curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
             chmod +x ${HOME}/go/bin/operator-sdk
+            echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
       - run:
           name: Install kubectl
           command: |
@@ -140,6 +150,8 @@ workflows:
   build-operator:
     jobs:
       - install_golang
+      - install_dep
       - build:
           requires:
             - install_golang
+            - install_dep
