@@ -40,8 +40,6 @@ jobs:
             curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl"
             chmod +x kubectl
             sudo mv kubectl /usr/local/bin/
-            mkdir -p "${HOME}/.kube"
-            touch "${HOME}/.kube/config"
       - run:
           name: Install crictl
           command: |
@@ -59,7 +57,6 @@ jobs:
           root: /
           paths:
             - usr/local/bin/kubectl
-            - home/.kube/config
             - usr/local/bin/crictl
             - usr/local/bin/minikube
   build:
@@ -94,6 +91,8 @@ jobs:
       - run:
           name: Run minikube
           command: |
+            mkdir -p "${HOME}/.kube"
+            touch "${HOME}/.kube/config"
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
       - save_cache:
