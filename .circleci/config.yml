@@ -59,7 +59,7 @@ jobs:
           root: /
           paths:
             - usr/local/bin/kubectl
-            - home/circleci/go
+            - home/.kube/config
             - usr/local/bin/crictl
             - usr/local/bin/minikube
   build:
