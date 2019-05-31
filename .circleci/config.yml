@@ -37,7 +37,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-        at: /home/circleci
+          at: /home/circleci
       - restore_cache:
           keys:
             - kms-vault-operator-{{ checksum "Gopkg.lock" }}
