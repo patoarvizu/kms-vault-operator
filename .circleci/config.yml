@@ -152,7 +152,8 @@ workflows:
     jobs:
       - install_golang_tools
       - install_kubernetes_tools
-      - build:
           requires:
             - install_golang_tools
+      - build:
+          requires:
             - install_kubernetes_tools
