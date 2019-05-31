@@ -1,12 +1,13 @@
 version: 2.1
 
 jobs:
-  install_golang:
+  install_golang_tools:
     machine:
       enabled: true
       image: circleci/classic:201808-01
     environment:
       GOPATH: /home/circleci/go
+      OPERATOR_SDK_VERSION: 0.6.0
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - run:
@@ -16,37 +17,11 @@ jobs:
             curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.11.6.linux-amd64.tar.gz"
             sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
             mkdir -p ${HOME}/go/bin
-      - persist_to_workspace:
-          root: /home/circleci
-          paths:
-            - go
-  install_dep:
-    machine:
-      enabled: true
-      image: circleci/classic:201808-01
-    working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
-    steps:
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Install dep
           command: |
             curl -L https://github.com/golang/dep/releases/download/v0.5.1/dep-linux-amd64 -o ${HOME}/go/bin/dep
             chmod +x ${HOME}/go/bin/dep
-      - persist_to_workspace:
-          root: /home/circleci
-          paths:
-            - go
-  install_operator_sdk:
-    machine:
-      enabled: true
-      image: circleci/classic:201808-01
-    environment:
-      OPERATOR_SDK_VERSION: 0.6.0
-    working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
-    steps:
-      - attach_workspace:
-          at: /home/circleci
       - run:
           name: Install operator-sdk
           command: |
@@ -61,7 +36,6 @@ jobs:
       enabled: true
       image: circleci/classic:201808-01
     environment:
-      OPERATOR_SDK_VERSION: 0.6.0
       MINIKUBE_HOME: '/home/circleci'
       MINIKUBE_WANTUPDATENOTIFICATION: 'false'
       MINIKUBE_WANTREPORTERRORPROMPT: 'false'
@@ -165,14 +139,7 @@ workflows:
   version: 2
   build-operator:
     jobs:
-      - install_golang
-      - install_dep:
-          requires:
-            - install_golang
-      - install_operator_sdk:
-          requires:
-            - install_golang
+      - install_golang_tools
       - build:
           requires:
-            - install_dep
-            - install_operator_sdk
+            - install_golang_tools
