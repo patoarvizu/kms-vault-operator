@@ -26,6 +26,8 @@ jobs:
       image: circleci/classic:201808-01
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - run:
           name: Install dep
           command: |
