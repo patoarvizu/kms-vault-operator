@@ -84,7 +84,7 @@ jobs:
       - run:
           name: Restore workspace
           command: |
-            mv /tmp/workspace/go /home/circleci/
+            mv -f /tmp/workspace/go /home/circleci/
             mv /tmp/workspace/kubectl /tmp/workspace/crictl /tmp/workspace/minikube /usr/local/bin/
       - run:
           name: Install dependencies
