@@ -17,6 +17,10 @@ jobs:
             sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
             mkdir -p ${HOME}/go/bin
             echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
+      - persist_to_workspace:
+          root: /home/circleci
+          paths:
+            - go
   build:
     machine:
       enabled: true
@@ -32,6 +36,8 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - checkout
+      - attach_workspace:
+        at: /home/circleci
       - restore_cache:
           keys:
             - kms-vault-operator-{{ checksum "Gopkg.lock" }}
