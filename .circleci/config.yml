@@ -151,7 +151,7 @@ workflows:
   build-operator:
     jobs:
       - install_golang_tools
-      - install_kubernetes_tools
+      - install_kubernetes_tools:
           requires:
             - install_golang_tools
       - build:
