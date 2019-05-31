@@ -5,6 +5,8 @@ jobs:
     machine:
       enabled: true
       image: circleci/classic:201808-01
+    environment:
+      GOPATH: /home/circleci/go
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - run:
