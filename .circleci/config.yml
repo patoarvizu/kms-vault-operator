@@ -150,8 +150,9 @@ workflows:
   build-operator:
     jobs:
       - install_golang
-      - install_dep
-      - build:
+      - install_dep:
           requires:
             - install_golang
+      - build:
+          requires:
             - install_dep
