@@ -28,9 +28,9 @@ jobs:
             curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
             chmod +x ${HOME}/go/bin/operator-sdk
       - persist_to_workspace:
-          root: /home/circleci
+          root: /
           paths:
-            - go
+            - home/circleci/go
   build:
     machine:
       enabled: true
@@ -46,7 +46,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /home/circleci
+          at: /
       - restore_cache:
           keys:
             - kms-vault-operator-{{ checksum "Gopkg.lock" }}
