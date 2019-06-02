@@ -80,7 +80,7 @@ jobs:
       - restore_cache:
           keys:
             - kms-vault-operator-cache-{{ checksum "Gopkg.lock" }}
-            - kms-vault-operator-minikube
+            - kms-vault-operator-cache-minikube
       - run:
           name: Restore workspace
           command: |
@@ -103,7 +103,7 @@ jobs:
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
       - save_cache:
-          key: kms-vault-operator-minikube
+          key: kms-vault-operator-cache-minikube
           paths:
             - /home/circleci/.minikube
       - run:
