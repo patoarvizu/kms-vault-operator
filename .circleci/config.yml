@@ -84,7 +84,8 @@ jobs:
       - run:
           name: Restore workspace
           command: |
-            rsync -r /tmp/workspace/go /home/circleci/go
+            ls -als /tmp/workspace/
+            rsync -r /tmp/workspace/go/ /home/circleci/go/
             ls -als /home/circleci/go
             mv /tmp/workspace/kubectl /tmp/workspace/crictl /tmp/workspace/minikube /usr/local/bin/
       - run:
