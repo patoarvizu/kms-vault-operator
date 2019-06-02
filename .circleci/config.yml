@@ -79,7 +79,7 @@ jobs:
           at: /tmp/workspace/
       - restore_cache:
           keys:
-            - kms-vault-operator-{{ checksum "Gopkg.lock" }}
+            - kms-vault-operator-cache-{{ checksum "Gopkg.lock" }}
             - kms-vault-operator-minikube
       - run:
           name: Restore workspace
@@ -88,11 +88,11 @@ jobs:
             sudo mv /tmp/workspace/kubectl /tmp/workspace/crictl /tmp/workspace/minikube /usr/local/bin/
             echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
       - run:
-          name: Install dependencies!
+          name: Install dependencies
           command: |
             dep ensure -v
       - save_cache:
-          key: kms-vault-operator-{{ checksum "Gopkg.lock" }}
+          key: kms-vault-operator-cache-{{ checksum "Gopkg.lock" }}
           paths:
             - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
