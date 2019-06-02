@@ -94,7 +94,7 @@ jobs:
       - save_cache:
           key: kms-vault-operator-{{ checksum "Gopkg.lock" }}
           paths:
-            - ${HOME}/go/src/github.com/patoarvizu/kms-vault-operator/vendor
+            - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
           command: |
@@ -105,7 +105,7 @@ jobs:
       - save_cache:
           key: kms-vault-operator-minikube
           paths:
-            - ${HOME}/.minikube
+            - /home/circleci/.minikube
       - run:
           name: Deploy Vault cluster
           command: |
