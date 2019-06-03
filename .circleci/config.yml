@@ -18,8 +18,8 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - kms-vault-operator-{{ checksum "Gopkg.lock" }}
-            - kms-vault-operator-minikube
+            - kms-vault-operator-golang-cache-{{ checksum "Gopkg.lock" }}
+            - kms-vault-operator-minikube-cache
       - run:
           name: Install golang
           command: |
@@ -64,18 +64,18 @@ jobs:
           command: |
             dep ensure -v
       - save_cache:
-          key: kms-vault-operator-{{ checksum "Gopkg.lock" }}
+          key: kms-vault-operator-golang-cache-{{ checksum "Gopkg.lock" }}
           paths:
-            - ${HOME}/go/src/github.com/patoarvizu/kms-vault-operator/vendor
+            - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
           command: |
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
       - save_cache:
-          key: kms-vault-operator-minikube
+          key: kms-vault-operator-minikube-cache
           paths:
-            - ${HOME}/.minikube
+            - /home/circleci/.minikube
       - run:
           name: Deploy Vault cluster
           command: |
@@ -86,6 +86,10 @@ jobs:
               kubectl get pods -l "name=vault-operator"
             done
       - run:
+          name: Build operator
+          command: |
+            operator-sdk build patoarvizu/kms-vault-operator:latest
+      - run:
           name: Run tests v1
           command : |
             kubectl apply -f test/manifests/vault/vault-cluster-v1.yaml
@@ -94,7 +98,6 @@ jobs:
               kubectl get pods -l "app=vault"
             done
             export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
-            operator-sdk build patoarvizu/kms-vault-operator:latest
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
       - run:
@@ -106,7 +109,6 @@ jobs:
               kubectl get pods -l "app=vault"
             done
             export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
-            operator-sdk build patoarvizu/kms-vault-operator:latest
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
             kubectl delete -f test/manifests/vault/vault-cluster-v2.yaml
       - run:
@@ -114,7 +116,7 @@ jobs:
           command: |
             echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
             operator-sdk build patoarvizu/kms-vault-operator:$CIRCLE_SHA1
-            VERSION=${CIRCLE_TAG:-v0.0.0}
+            VERSION=${CIRCLE_TAG:-latest}
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
