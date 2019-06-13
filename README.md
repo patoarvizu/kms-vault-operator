@@ -5,6 +5,8 @@
 <!-- TOC -->
 
 - [KMS Vault operator](#kms-vault-operator)
+    - [Intro](#intro)
+    - [Description](#description)
     - [Configuration](#configuration)
         - [AWS](#aws)
         - [Vault](#vault)
@@ -22,6 +24,20 @@
     - [Help wanted!](#help-wanted)
 
 <!-- /TOC -->
+
+## Intro
+
+We all know (or should know) that keeping secrets in plain text in source control is definitely a big no-no. That forces us to keep sensitive text in a different way like a password manager, or worse, in an encrypted file in the same repository (but where do we keep the password for that?!). So we either have a "first secret" problem, or a "source of truth" problem, or an automation problem.
+
+[KMS](https://aws.amazon.com/kms/) provides a nice solution to the encryption/decryption problem so we can keep encrypted secrets in source control (and thus closer to the code that depends on it). But more often than not, said secret is not very valuable by itself and needs to be decrypted and put where it can be consumed at runtime, e.g. in [Vault](https://www.vaultproject.io).
+
+One pattern that can accomplish this is KMS + Vault + [Terraform](https://www.terraform.io/). By creating a KMS key (which can be done with Terraform), we can encrypt a secret that can be safely stored in source control. It can then be decrypted by a Terraform [`aws_kms_secrets`](https://www.terraform.io/docs/providers/aws/d/kms_secrets.html) data source and passed to a [`vault_generic_secret`](https://www.terraform.io/docs/providers/vault/r/generic_secret.html) resource to be written into Vault. Top it off with the [`inmem`](https://www.vaultproject.io/docs/configuration/storage/in-memory.html) storage backend and the secret will never be in plaintext in durable storage.
+
+While this gets the job done for storing secrets in a secure way, it doesn't lend itself to automation. Options like Terraform Enterprise are often prohibitively expensive, and ad-hoc solutions like running `terraform apply` on a `cron` job are fragile and insecure.
+
+The goal of this operator is to minimize the security risk of secret exposure, while leveraging Kubernetes to provide the automation to minimize configuration drift.
+
+## Description
 
 This operator manages `KMSVaultSecret` CRDs containing secrets encrypted with a KMS key (and base64-encoded) and stores them in Vault. This allows you to securely manage your Vault secrets in source control and because the decryption only happens at runtime, it's only in the operator memory, minimizing the exposure of the plain text secret. The operator resources and scaffolding code are managed and generated automatically with the [operator-sdk framework](https://github.com/operator-framework/operator-sdk).
 
