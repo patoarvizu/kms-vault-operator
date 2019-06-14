@@ -145,13 +145,21 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error
 		if err != nil {
 			return nil, err
 		}
-		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded})
+		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: convertContextMap(s.SecretContext)})
 		if err != nil {
 			return nil, err
 		}
 		decryptedSecretData[s.Key] = string(result.Plaintext)
 	}
 	return decryptedSecretData, nil
+}
+
+func convertContextMap(context map[string]string) map[string]*string {
+	m := make(map[string]*string)
+	for k, v := range context {
+		m[k] = &v
+	}
+	return m
 }
 
 func getAuthenticatedVaultClient(vaultAuthenticationMethod string) (*vaultapi.Client, error) {
