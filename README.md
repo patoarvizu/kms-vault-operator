@@ -19,7 +19,6 @@
             - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
             - [No validation on target path](#no-validation-on-target-path)
             - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
-            - [KMS encryption context is not supported (as of this version)](#kms-encryption-context-is-not-supported-as-of-this-version)
             - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
     - [Help wanted!](#help-wanted)
 
@@ -43,7 +42,7 @@ This operator manages `KMSVaultSecret` CRDs containing secrets encrypted with a 
 
 The AWS credentials to do the decryption operation use [aws-sdk-go](https://github.com/aws/aws-sdk-go) and follows the default [credential precedence order](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html), so if you're going to inject environment variables or configuration files, you should do so on the operator's `Deployment` manifest (e.g. [deploy/operator.yaml](deploy/operator.yaml)).
 
-Each secret will define a `path`, a `vaultAuthMethod`, a set of `kvSettings`, and a list of `secrets`.
+Each secret will define a `path`, a `vaultAuthMethod`, a set of `kvSettings`, and a list of `secrets`. Each `secret` will have a `key` and `encryptedSecret` field of type `string`, and a `secretContext` field that's an arbitrary set of key-value pairs corresponding to the [encryption context](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#encrypt_context) with which the secret was encrypted.
 
 This first version of the operator supports authenticating to Vault via the [Kubernetes auth method](https://www.vaultproject.io/docs/auth/kubernetes.html) (i.e. `vaultAuthMethod: k8s`) or directly via a [Vault token](https://www.vaultproject.io/docs/auth/token.html) (i.e. `vaultAuthMethod: token`). Support for more authentication methods will be added in the future. Note that the configuration required for the operator to perform KMS and Vault operations is not done on the `KMSVaultSecret` CR but on the operator `Deployment` itself, and is documented below.
 
@@ -133,10 +132,6 @@ Because the controller is designed to write the secret to Vault continuously, it
 #### Removing secrets when a `KMSVaultSecret` is deleted.
 
 The kms-vault-operator controller supports removing secrets from Vault by setting `delete.k8s.patoarvizu.dev` as a [Kubernetes finalizer](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers). Support for this for K/V V1 is simple since secrets are not versioned, but when the secret is for K/V V2, deleting a `KMSVaultSecret` object will delete **ALL** of its versions and metadata from Vault, so handle it with care. If the secret is V2, the path for the `DELETE` operation is the same as the input one, replacing `secret/data/` with `secret/metadata/`. There is currently no support for removing a single version of a K/V V2 secret.
-
-#### KMS encryption context is not supported (as of this version)
-
-The operator or `KMSVaultSecret` CRD doesn't support passing [encryption context](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#encrypt_context) to the `Decrypt` operation, so only secrets encrypted without encryption context are supported.
 
 #### Support for K/V V2 is limited (as of this version)
 
