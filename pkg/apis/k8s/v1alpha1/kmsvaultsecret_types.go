@@ -14,7 +14,7 @@ type KMSVaultSecretSpec struct {
 	Secrets    []Secret   `json:"secrets"`
 	KVSettings KVSettings `json:"kvSettings"`
 
-	// +kubebuilder:validation:Enum=k8s,token
+	// +kubebuilder:validation:Enum=k8s,token,userpass
 	VaultAuthMethod string `json:"vaultAuthMethod"`
 
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
