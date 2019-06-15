@@ -12,7 +12,7 @@
         - [Vault](#vault)
             - [Kubernetes authentication method (`vaultAuthMethod: k8s`)](#kubernetes-authentication-method-vaultauthmethod-k8s)
             - [Vault token authentication method (`vaultAuthMethod: token`)](#vault-token-authentication-method-vaultauthmethod-token)
-            - [Vault Userpass authentication method (`vaultAuthMethod: userpass`)](#vault-userpass-authentication-method-vaultauthmethod-userpass)
+            - [Vault userpass authentication method (`vaultAuthMethod: userpass`)](#vault-userpass-authentication-method-vaultauthmethod-userpass)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
     - [Important notes by this project](#important-notes-by-this-project)
@@ -74,7 +74,7 @@ Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
 `VAULT_TOKEN` | Y | | The Vault token used to perform operations on Vault.
 
-#### Vault Userpass authentication method (`vaultAuthMethod: userpass`)
+#### Vault userpass authentication method (`vaultAuthMethod: userpass`)
 
 Environment variable | Required? | Default | Description
 `VAULT_USERNAME` | Y | | The Vault username used to authenticate
