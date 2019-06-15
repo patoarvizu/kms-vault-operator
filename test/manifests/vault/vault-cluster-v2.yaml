@@ -38,6 +38,7 @@ spec:
           capabilities = ["create", "read", "update", "delete", "list"]
           }
     auth:
+      - type: userpass
       - type: kubernetes
         roles:
           - name: kms-vault-operator
@@ -51,3 +52,9 @@ spec:
         description: General secrets.
         options:
           version: 2
+    startupSecrets:
+      - type: kv
+        path: auth/userpass/users/test
+        data:
+          password: test
+          policies: allow_secrets
