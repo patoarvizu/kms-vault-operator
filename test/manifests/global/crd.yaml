@@ -52,6 +52,10 @@ spec:
                     type: string
                   key:
                     type: string
+                  secretContext:
+                    additionalProperties:
+                      type: string
+                    type: object
                 required:
                 - key
                 - encryptedSecret
