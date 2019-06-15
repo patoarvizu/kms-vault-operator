@@ -37,11 +37,12 @@ type KVWriter interface {
 }
 
 const (
-	K8sAuthenticationMethod   string = "k8s"
-	TokenAuthenticationMethod string = "token"
-	KVv1                      string = "v1"
-	KVv2                      string = "v2"
-	DeletedFinalizer          string = "delete.k8s.patoarvizu.dev"
+	K8sAuthenticationMethod      string = "k8s"
+	TokenAuthenticationMethod    string = "token"
+	UserpassAuthenticationMethod string = "userpass"
+	KVv1                         string = "v1"
+	KVv2                         string = "v2"
+	DeletedFinalizer             string = "delete.k8s.patoarvizu.dev"
 )
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
@@ -181,6 +182,8 @@ func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
 	switch vaultAuthenticationMethod {
 	case K8sAuthenticationMethod:
 		return VaultK8sAuth{}
+	case UserpassAuthenticationMethod:
+		return VaultUserpassAuth{}
 	default:
 		return VaultTokenAuth{}
 	}
