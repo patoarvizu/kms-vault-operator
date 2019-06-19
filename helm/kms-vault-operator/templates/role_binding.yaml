@@ -1,0 +1,12 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kms-vault-operator
+  namespace: {{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.serviceAccount.name }}
+roleRef:
+  kind: Role
+  name: kms-vault-operator
+  apiGroup: rbac.authorization.k8s.io
