@@ -46,3 +46,25 @@ spec:
               value: {{ .Values.vault.address }}
             - name: VAULT_SKIP_VERIFY
               value: {{ .Values.vault.skipVerify | quote }}
+            {{- with .Values.authentication }}
+            {{- if .k8s }}
+            - name: VAULT_K8S_ROLE
+              value: {{ .k8s.role }}
+            - name: VAULT_K8S_LOGIN_ENDPOINT
+              value: {{ .k8s.endpoint }}
+            {{- else if .token }}
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .token.secretName }}
+                  key: {{ .token.secretKey }}
+            {{- else if .userpass }}
+            - name: VAULT_USERNAME
+              value: {{ .userpass.username }}
+            - name: VAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .userpass.password.secretName }}
+                  key: {{ .userpass.password.secretKey }}
+            {{- end }}
+            {{- end }}

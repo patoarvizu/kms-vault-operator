@@ -16,3 +16,8 @@ aws:
 vault:
   address: https://vault:8200
   skipVerify: true
+
+authentication:
+  k8s: null
+  token: null
+  userpass: null
