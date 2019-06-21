@@ -1,0 +1,4 @@
+authentication:
+  token:
+    secretName: vault-secrets
+    secretKey: VAULT_TOKEN
