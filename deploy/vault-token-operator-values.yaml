@@ -1,4 +1,4 @@
 authentication:
   token:
-    secretName: vault-secrets
-    secretKey: VAULT_TOKEN
+    secretName: vault-unseal-keys
+    secretKey: vault-root
