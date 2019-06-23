@@ -77,19 +77,18 @@ Environment variable | Required? | Default | Description
 #### Vault userpass authentication method (`vaultAuthMethod: userpass`)
 
 Environment variable | Required? | Default | Description
+---------------------|-----------|---------|------------
 `VAULT_USERNAME` | Y | | The Vault username used to authenticate
 `VAULT_PASSWORD` | Y | | The password corresponding to `VAULT_USERNAME`
 
 ### Deploying the operator
 
-Assuming `deploy/operator.yaml` has been configured appropriately, run the following to deploy the operator.
+The `deploy/` directory has some statically defined manifests that you can modify to configure your own keys and deploy. However, this repo also provides a [Helm](https://helm.sh/) template in the `helm/kms-vault-operator` directory, as well as a sample Helm values file for each authentication method above under `deploy/helm-values`. Please note that some of the values assume you have previously created the [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) or other configuration they rely on.
+
+Tiller is not required to deploy this chart. It can be deployed by applying the charts rendered by `helm template` directly. For example, to deploy a chart with the `deploy/helm-values/vault-token-operator-values.yaml` values file, you can run:
 
 ```
-kubectl apply -f deploy/crds/k8s_v1alpha1_kmsvaultsecret_crd.yaml
-kubectl apply -f deploy/serviceaccount.yaml
-kubectl apply -f deploy/role.yaml
-kubectl apply -f deploy/role_binding.yaml
-kubectl apply -f deploy/operator.yaml
+helm template -n default -f deploy/vault-token-operator-values.yaml helm/kms-vault-operator/ | kubectl apply -f -
 ```
 
 ### Creating a secret
