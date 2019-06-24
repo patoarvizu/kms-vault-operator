@@ -1,0 +1,23 @@
+imageVersion: latest
+
+serviceAccount:
+  name: kms-vault-operator
+  create: true
+
+aws:
+  accessKeyId:
+    secretName: aws-secrets
+    secretKey: AWS_ACCESS_KEY_ID
+  secretAccessKey:
+    secretName: aws-secrets
+    secretKey: AWS_SECRET_ACCESS_KEY
+  region: us-east-1
+
+vault:
+  address: https://vault:8200
+  skipVerify: true
+
+authentication:
+  k8s: null
+  token: null
+  userpass: null

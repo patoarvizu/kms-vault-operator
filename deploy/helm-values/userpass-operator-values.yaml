@@ -1,0 +1,6 @@
+authentication:
+  userpass:
+    username: test
+    password:
+      secretName: vault-password
+      secretKey: password

@@ -1,0 +1,4 @@
+authentication:
+  token:
+    secretName: vault-unseal-keys
+    secretKey: vault-root

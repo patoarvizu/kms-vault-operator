@@ -1,0 +1,4 @@
+apiVersion: v1
+description: KMS Vault operator
+name: kms-vault-operator
+version: 0.0.1
