@@ -20,6 +20,7 @@
         - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
         - [No validation on target path](#no-validation-on-target-path)
         - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
+        - [Decryption or decoding errors are ignored](#decryption-or-decoding-errors-are-ignored)
         - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
     - [Help wanted!](#help-wanted)
 
@@ -138,6 +139,10 @@ Because the controller is designed to write the secret to Vault continuously, it
 ### Removing secrets when a `KMSVaultSecret` is deleted.
 
 The kms-vault-operator controller supports removing secrets from Vault by setting `delete.k8s.patoarvizu.dev` as a [Kubernetes finalizer](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers). Support for this for K/V V1 is simple since secrets are not versioned, but when the secret is for K/V V2, deleting a `KMSVaultSecret` object will delete **ALL** of its versions and metadata from Vault, so handle it with care. If the secret is V2, the path for the `DELETE` operation is the same as the input one, replacing `secret/data/` with `secret/metadata/`. There is currently no support for removing a single version of a K/V V2 secret.
+
+### Decryption or decoding errors are ignored
+
+If a secret is incorrectly encoded or encrypted (including if the encryption context doesn't match the secret), the operator will skip those secrets and will continue writing the rest. This applies to individual items in the `secrets` list, i.e. the controller will still apply other secrets within the same `KMSVaultSecret` even if one of them fails.
 
 ### Support for K/V V2 is limited (as of this version)
 
