@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
+
 	"k8s.io/client-go/tools/record"
 
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
@@ -47,6 +49,7 @@ const (
 
 var log = logf.Log.WithName("controller_kmsvaultsecret")
 var rec record.EventRecorder
+var reqLogger logr.Logger
 
 func Add(mgr manager.Manager) error {
 	rec = mgr.GetRecorder("kms-vault-controller")
@@ -135,6 +138,7 @@ func removeFinalizer(allFinalizers []string, finalizer string) []string {
 }
 
 func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error) {
+	logger := log.WithValues("Function", "decryptSecrets")
 	awsSession, err := session.NewSession()
 	if err != nil {
 		return nil, err
@@ -144,11 +148,13 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error
 	for _, s := range secrets {
 		decoded, err := base64.StdEncoding.DecodeString(s.EncryptedSecret)
 		if err != nil {
-			return nil, err
+			logger.Info("Error decoding secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
+			continue
 		}
 		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: convertContextMap(s.SecretContext)})
 		if err != nil {
-			return nil, err
+			logger.Info("Error decrypting secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
+			continue
 		}
 		decryptedSecretData[s.Key] = string(result.Plaintext)
 	}
