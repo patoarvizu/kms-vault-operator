@@ -1,6 +1,6 @@
 # KMS Vault operator
 
-[![CircleCI](https://circleci.com/gh/patoarvizu/kms-vault-operator.svg?style=svg)](https://circleci.com/gh/patoarvizu/kms-vault-operator)
+![CircleCI](https://img.shields.io/circleci/build/github/patoarvizu/kms-vault-operator.svg?label=CircleCI) ![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/patoarvizu/kms-vault-operator.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/patoarvizu/kms-vault-operator.svg) ![Keybase BTC](https://img.shields.io/keybase/btc/patoarvizu.svg) ![Keybase PGP](https://img.shields.io/keybase/pgp/patoarvizu.svg) ![GitHub](https://img.shields.io/github/license/patoarvizu/kms-vault-operator.svg)
 
 <!-- TOC -->
 
