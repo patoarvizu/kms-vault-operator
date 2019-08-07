@@ -99,6 +99,7 @@ jobs:
               kubectl get pods -l "app=vault"
             done
             export VAULT_ADDR=$(minikube service --https --url vault-ext)
+            echo "Vault address - $VAULT_ADDR -"
             sleep 60
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
