@@ -15,6 +15,7 @@
             - [Vault userpass authentication method (`vaultAuthMethod: userpass`)](#vault-userpass-authentication-method-vaultauthmethod-userpass)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
+        - [Partial secrets](#partial-secrets)
     - [Important notes by this project](#important-notes-by-this-project)
         - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
         - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
@@ -22,6 +23,8 @@
         - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
         - [Decryption or decoding errors are ignored](#decryption-or-decoding-errors-are-ignored)
         - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
+        - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
+        - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
     - [Help wanted!](#help-wanted)
 
 <!-- /TOC -->
@@ -122,11 +125,19 @@ Make sure you also set the appropriate `vaultAuthMethod` based on your setup. Af
 kubectl apply -f deploy/example-kms-vault-secret.yaml
 ```
 
+### Partial secrets
+
+In addition to managing `KMSVaultSecret` custom resources, this operator also handles a second type of resource called `PartialKMSVaultSecret`. This CRD is similar to `KMSVaultSecret` but only supports the `secrets` field, and doesn't have its own controller. Instead, the purpose of this resource is to hold secrets that can be included in a `KMSVaultSecret`, via the `includeSecrets` field. The single `kmsvaultsecret_controller.go` will aggregate the included secrets along with those of the resource itself and write them all together as a single item in Vault. To keep things as simple as possible, the first iteration of this feature won't support nesting `PartialKMSVaultSecret`s (e.g. by including `PartialKMSVaultSecret`s in other `PartialKMSVaultSecret`s). Rather, the way to include multiple partial secrets is to just list them all in the `includeSecrets` field of the `KMSVaultSecret` resource.
+
+Because of their abstract nature, `PartialKMSVaultSecret`s don't have a path, Vault authenticating method, or KV settings, but they do support the KMS secret encryption context, which is passed down to the concrete `KMSVaultSecret` object.
+
 ## Important notes by this project
 
 ### Kubernetes namespaces and Vault namespaces
 
 The `KMSVaultSecret` CRD is a namespaced resource, but please note that the [Kubernetes namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/) doesn't map to a [Vault namespace](https://www.vaultproject.io/docs/enterprise/namespaces/index.html). Support for Vault namespaces is outside of the scope of this project, since they're only available in Vault enterprise for now.
+
+Additionally, the `PartialKMSVaultSecret` CRD is also namespaced, but the `includeSecrets` field on a `KMSVaultSecret` object will only discover partial secrets within the same namespace. Support for referencing secrets from another namespace will be added in a future version.
 
 ### Multiple secrets writing to the same location
 
@@ -147,6 +158,14 @@ If a secret is incorrectly encoded or encrypted (including if the encryption con
 ### Support for K/V V2 is limited (as of this version)
 
 The `KMSVaultSecret` CRD supports specifying `kvSettings.engineVersion: v2` and a check-and-set index with `kvSettings.casIndex` but support for it is limited. For example, the operator doesn't doesn't enforce or validate that the `path` is V2-friendly, and no metadata operations are available.
+
+### Partial secrets don't validate keys
+
+The operator doesn't do any validation in regards to keys included both in the `KMSVaultSecret` object and in any included `PartialKMSVaultSecret`s (or if they exist in multiple included `PartialKMSVaultSecret`s), and it also doesn't provide any guarantees regarding the order of precedence of secrets. Because of this, you should make sure that your secret aggregation avoids these overlaps. Support for validating this can be added in a future version.
+
+### Partial secrets don't support finalizers (yet)
+
+Because `PartialKMSVaultSecret`s don't have their own controller (as of the latest version), it's not possible to handle finalizers on them (specifically the `delete.k8s.patoarvizu.dev` finalizer). That means that the presence of finalizers on those objects won't have the same effect as setting them on `KMSVaultSecret` objects. If a `PartialKMSVaultSecret` object is deleted, the direct effect is that any `KMSVaultSecret` that includes a deleted `PartialKMSVaultSecret` could see the included keys deleted from Vault! This would only happen if the Vault KV secret backend is v1, since to update v2 secrets you need to update the `casIndex` field. Supporting finalizers for partial secrets could be added to a future version.
 
 ## Help wanted!
 
