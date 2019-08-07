@@ -101,7 +101,7 @@ jobs:
             minikube service list
             export VAULT_ADDR=$(minikube service --https --url vault-ext)
             echo "Vault address - $VAULT_ADDR -"
-            export VAULT_ADDR=$(minikube service vault-ext --url --format "https://{{.IP}}:{{.Port}}")
+            export VAULT_ADDR=$(minikube service vault-ext --url --format "https://{{.IP}}:{{.Port}}" | cut -c 3-)
             echo "Vault address - $VAULT_ADDR -"
             minikube service vault-ext --url --https=true
             minikube service vault-ext --url --https=true
