@@ -72,7 +72,7 @@ jobs:
           no_output_timeout: "20m"
           command: |
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.12.0 --extra-config=apiserver.authorization-mode=RBAC
-            minikube update-context
+            sudo chown -R $USER:$USER /home/circleci/.minikube
       - save_cache:
           key: kms-vault-operator-minikube-cache
           paths:
@@ -98,7 +98,7 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
-            export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
+            export VAULT_ADDR=$(minikube service --https --url vault-ext)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
       - run:
@@ -109,7 +109,7 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
-            export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
+            export VAULT_ADDR=$(minikube service --https --url vault-ext)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
             kubectl delete -f test/manifests/vault/vault-cluster-v2.yaml
       - run:
