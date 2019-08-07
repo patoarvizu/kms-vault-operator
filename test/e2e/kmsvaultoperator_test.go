@@ -296,7 +296,7 @@ func TestKMSVaultSecretWithContextV2(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestKMSVaultSecretPartialSecretV1(t *testing.T) {
+func TestKMSVaultSecretSomeFailedKeysV1(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 
@@ -311,7 +311,7 @@ func TestKMSVaultSecretPartialSecretV1(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestKMSVaultSecretPartialSecretV2(t *testing.T) {
+func TestKMSVaultSecretSomeFailedKeysV2(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 
