@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl"
+            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
             chmod +x kubectl
             sudo mv kubectl /usr/local/bin/
             mkdir -p "${HOME}/.kube"
@@ -49,8 +49,8 @@ jobs:
       - run:
           name: Install crictl
           command: |
-            curl -Lo crictl-v1.11.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.11.0/crictl-v1.11.0-linux-amd64.tar.gz"
-            tar xf crictl-v1.11.0-linux-amd64.tar.gz
+            curl -Lo crictl-v1.12.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz"
+            tar xf crictl-v1.12.0-linux-amd64.tar.gz
             chmod +x crictl
             sudo mv crictl /usr/local/bin/
       - run:
