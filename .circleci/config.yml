@@ -101,8 +101,14 @@ jobs:
             minikube service list
             export VAULT_ADDR=$(minikube service --https --url vault-ext)
             echo "Vault address - $VAULT_ADDR -"
-            export VAULT_ADDR=$(minikube service vault-ext --url --format "https://:{{.IP}}:{{.Port}}")
+            export VAULT_ADDR=$(minikube service vault-ext --url --format "https://{{.IP}}:{{.Port}}")
             echo "Vault address - $VAULT_ADDR -"
+            minikube service vault-ext --url --https=true
+            minikube service vault-ext --url --https=true
+            minikube service vault-ext --url --format "{{.Name}}"
+            minikube service vault-ext --url --format "https://{{.IP}}:{{.Port}}"
+            minikube service vault-ext --url --https=true --format "{{.Name}}"
+            minikube service vault-ext --url --https=true --format "https://{{.IP}}:{{.Port}}"
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
       - run:
