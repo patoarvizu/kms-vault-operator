@@ -69,6 +69,7 @@ jobs:
             - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
+          no_output_timeout: "20m"
           command: |
             sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
