@@ -71,7 +71,7 @@ jobs:
           name: Run minikube
           no_output_timeout: "20m"
           command: |
-            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
+            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.12.0 --extra-config=apiserver.authorization-mode=RBAC
             minikube update-context
       - save_cache:
           key: kms-vault-operator-minikube-cache
