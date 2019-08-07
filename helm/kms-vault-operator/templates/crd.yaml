@@ -29,6 +29,10 @@ spec:
           type: object
         spec:
           properties:
+            includeSecrets:
+              items:
+                type: string
+              type: array
             kvSettings:
               properties:
                 casIndex:
@@ -72,6 +76,69 @@ spec:
           - secrets
           - kvSettings
           - vaultAuthMethod
+          type: object
+        status:
+          properties:
+            created:
+              type: boolean
+          type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+
+---
+
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: partialkmsvaultsecrets.k8s.patoarvizu.dev
+spec:
+  group: k8s.patoarvizu.dev
+  names:
+    kind: PartialKMSVaultSecret
+    listKind: PartialKMSVaultSecretList
+    plural: partialkmsvaultsecrets
+    singular: partialkmsvaultsecret
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            secrets:
+              items:
+                properties:
+                  encryptedSecret:
+                    type: string
+                  key:
+                    type: string
+                  secretContext:
+                    additionalProperties:
+                      type: string
+                    type: object
+                required:
+                - key
+                - encryptedSecret
+                type: object
+              type: array
+          required:
+          - secrets
           type: object
         status:
           properties:

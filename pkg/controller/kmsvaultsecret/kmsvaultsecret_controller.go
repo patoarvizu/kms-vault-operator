@@ -15,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -92,6 +93,16 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
+	}
+
+	for _, partialSecretName := range instance.Spec.IncludeSecrets {
+		partialSecretInstance := &k8sv1alpha1.PartialKMSVaultSecret{}
+		err = r.client.Get(context.TODO(), types.NamespacedName{Namespace: request.Namespace, Name: partialSecretName}, partialSecretInstance)
+		if err != nil {
+			reqLogger.Info(fmt.Sprintf("Error getting included secret %s, skipping it...", partialSecretName))
+			continue
+		}
+		instance.Spec.Secrets = append(instance.Spec.Secrets, partialSecretInstance.Spec.Secrets...)
 	}
 
 	vaultClient, err := getAuthenticatedVaultClient(instance.Spec.VaultAuthMethod)

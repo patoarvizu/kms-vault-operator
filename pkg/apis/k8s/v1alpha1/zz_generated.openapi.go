@@ -13,9 +13,12 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecret":       schema_pkg_apis_k8s_v1alpha1_KMSVaultSecret(ref),
-		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecretSpec":   schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref),
-		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecretStatus": schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecret":              schema_pkg_apis_k8s_v1alpha1_KMSVaultSecret(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecretSpec":          schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KMSVaultSecretStatus":        schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecret":       schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecret(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretSpec":   schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretSpec(ref),
+		"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretStatus": schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretStatus(ref),
 	}
 }
 
@@ -86,6 +89,19 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 							},
 						},
 					},
+					"includeSecrets": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"kvSettings": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KVSettings"),
@@ -111,6 +127,95 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "KMSVaultSecretStatus defines the observed state of KMSVaultSecret",
+				Properties: map[string]spec.Schema{
+					"created": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{},
+	}
+}
+
+func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecret(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API",
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretSpec", "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.PartialKMSVaultSecretStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret",
+				Properties: map[string]spec.Schema{
+					"secrets": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"secrets"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"},
+	}
+}
+
+func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret",
 				Properties: map[string]spec.Schema{
 					"created": {
 						SchemaProps: spec.SchemaProps{
