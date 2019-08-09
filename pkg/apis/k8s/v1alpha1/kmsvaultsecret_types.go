@@ -4,22 +4,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // KMSVaultSecretSpec defines the desired state of KMSVaultSecret
 // +k8s:openapi-gen=true
 type KMSVaultSecretSpec struct {
-	Path       string     `json:"path"`
-	Secrets    []Secret   `json:"secrets"`
-	KVSettings KVSettings `json:"kvSettings"`
+	Path           string     `json:"path"`
+	Secrets        []Secret   `json:"secrets"`
+	IncludeSecrets []string   `json:"includeSecrets,omitempty"`
+	KVSettings     KVSettings `json:"kvSettings"`
 
 	// +kubebuilder:validation:Enum=k8s,token,userpass
 	VaultAuthMethod string `json:"vaultAuthMethod"`
-
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
 type KVSettings struct {
@@ -39,9 +33,6 @@ type Secret struct {
 // +k8s:openapi-gen=true
 type KMSVaultSecretStatus struct {
 	Created bool `json:"created,omitempty"`
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

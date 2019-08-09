@@ -41,7 +41,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl"
+            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
             chmod +x kubectl
             sudo mv kubectl /usr/local/bin/
             mkdir -p "${HOME}/.kube"
@@ -49,14 +49,14 @@ jobs:
       - run:
           name: Install crictl
           command: |
-            curl -Lo crictl-v1.11.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.11.0/crictl-v1.11.0-linux-amd64.tar.gz"
-            tar xf crictl-v1.11.0-linux-amd64.tar.gz
+            curl -Lo crictl-v1.12.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz"
+            tar xf crictl-v1.12.0-linux-amd64.tar.gz
             chmod +x crictl
             sudo mv crictl /usr/local/bin/
       - run:
           name: Install minikube
           command: |
-            curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v1.0.0/minikube-linux-amd64"
+            curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v1.3.0/minikube-linux-amd64"
             chmod +x minikube
             sudo mv minikube /usr/local/bin/
       - run:
@@ -69,9 +69,10 @@ jobs:
             - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
           name: Run minikube
+          no_output_timeout: "20m"
           command: |
-            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.11.0 --extra-config=apiserver.authorization-mode=RBAC
-            minikube update-context
+            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.12.0 --extra-config=apiserver.authorization-mode=RBAC
+            sudo chown -R $USER:$USER /home/circleci/.minikube
       - save_cache:
           key: kms-vault-operator-minikube-cache
           paths:
@@ -97,7 +98,8 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
-            export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
+            minikube service list
+            export VAULT_ADDR=$(minikube service --https --url vault-ext | cut -c 3-)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
       - run:
@@ -108,7 +110,7 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault"
             done
-            export VAULT_ADDR=$(sudo -E minikube service --https --url vault-ext)
+            export VAULT_ADDR=$(minikube service --https --url vault-ext | cut -c 3-)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
             kubectl delete -f test/manifests/vault/vault-cluster-v2.yaml
       - run:

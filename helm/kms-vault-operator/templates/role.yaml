@@ -51,5 +51,6 @@ rules:
   resources:
   - '*'
   - kmsvaultsecrets
+  - partialkmsvaultsecrets
   verbs:
   - '*'
