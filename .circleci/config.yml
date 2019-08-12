@@ -57,6 +57,7 @@ jobs:
           name: Run tests v1
           command: |
             k3d create --publish 8200:8200 --image rancher/k3s:v0.1.0
+            sleep 10
             export KUBECONFIG="$(k3d get-kubeconfig --name='k3s-default')"
             operator-sdk build patoarvizu/kms-vault-operator:latest
             kubectl apply -f test/manifests/vault/vault-external-service.yaml
@@ -76,6 +77,7 @@ jobs:
           name: Run tests v2
           command: |
             k3d create --publish 8200:8200 --image rancher/k3s:v0.1.0
+            sleep 10
             export KUBECONFIG="$(k3d get-kubeconfig --name='k3s-default')"
             operator-sdk build patoarvizu/kms-vault-operator:latest
             kubectl apply -f test/manifests/vault/vault-external-service.yaml
