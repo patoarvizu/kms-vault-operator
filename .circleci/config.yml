@@ -77,6 +77,7 @@ jobs:
               sleep 3
               kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
+            kubectl apply -f test/manifests/vault/vault-cluster-v2.yaml
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
       - run:
           name: Build container
