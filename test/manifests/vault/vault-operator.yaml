@@ -31,7 +31,7 @@ spec:
       serviceAccountName: vault-operator
       containers:
         - name: vault-operator
-          image: banzaicloud/vault-operator:0.4.14
+          image: banzaicloud/vault-operator:0.4.17
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9091
@@ -109,6 +109,7 @@ rules:
       - get
       - create
       - update
+      - list
   - apiGroups:
       - apps
     resources:

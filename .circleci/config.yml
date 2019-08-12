@@ -54,7 +54,7 @@ jobs:
           paths:
             - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
-          name: Run tests v1
+          name: Run all tests
           command: |
             k3d create --publish 8200:8200 --image rancher/k3s:v0.1.0
             sleep 5
@@ -69,30 +69,15 @@ jobs:
             kubectl apply -f test/manifests/vault/vault-cluster-v1.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
-              kubectl get pods -l "app=vault"
+              kubectl get pods -l "app=vault" -l "kv_version=v1"
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
-            k3d delete
-      - run:
-          name: Run tests v2
-          command: |
-            k3d create --publish 8200:8200 --image rancher/k3s:v0.1.0
-            sleep 5
-            export KUBECONFIG="$(k3d get-kubeconfig --name=k3s-default)"
-            operator-sdk build patoarvizu/kms-vault-operator:latest
-            kubectl apply -f test/manifests/vault/vault-external-service.yaml
-            kubectl apply -f test/manifests/vault/vault-operator.yaml
-            while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
-              sleep 3
-              kubectl get pods -l "name=vault-operator"
-            done
-            kubectl apply -f test/manifests/vault/vault-cluster-v2.yaml
+            kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
-              kubectl get pods -l "app=vault"
+              kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
-            k3d delete
       - run:
           name: Build container
           command: |
