@@ -11,3 +11,5 @@ spec:
   selector:
     app: vault
   type: LoadBalancer
+  externalIPs:
+  - 127.0.0.1

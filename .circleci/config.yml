@@ -7,10 +7,6 @@ jobs:
         image: circleci/classic:201808-01
     environment:
       OPERATOR_SDK_VERSION: 0.6.0
-      MINIKUBE_HOME: '/home/circleci'
-      MINIKUBE_WANTUPDATENOTIFICATION: 'false'
-      MINIKUBE_WANTREPORTERRORPROMPT: 'false'
-      CHANGE_MINIKUBE_NONE_USER: 'true'
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
@@ -19,7 +15,6 @@ jobs:
       - restore_cache:
           keys:
             - kms-vault-operator-golang-cache-{{ checksum "Gopkg.lock" }}
-            - kms-vault-operator-minikube-cache
       - run:
           name: Install golang
           command: |
@@ -47,18 +42,9 @@ jobs:
             mkdir -p "${HOME}/.kube"
             touch "${HOME}/.kube/config"
       - run:
-          name: Install crictl
+          name: Install k3d
           command: |
-            curl -Lo crictl-v1.12.0-linux-amd64.tar.gz "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.12.0/crictl-v1.12.0-linux-amd64.tar.gz"
-            tar xf crictl-v1.12.0-linux-amd64.tar.gz
-            chmod +x crictl
-            sudo mv crictl /usr/local/bin/
-      - run:
-          name: Install minikube
-          command: |
-            curl -Lo minikube "https://github.com/kubernetes/minikube/releases/download/v1.3.0/minikube-linux-amd64"
-            chmod +x minikube
-            sudo mv minikube /usr/local/bin/
+            wget -q -O - https://raw.githubusercontent.com/rancher/k3d/v1.3.1/install.sh | bash
       - run:
           name: Install dependencies
           command: |
@@ -68,51 +54,31 @@ jobs:
           paths:
             - /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator/vendor
       - run:
-          name: Run minikube
-          no_output_timeout: "20m"
+          name: Run all tests
           command: |
-            sudo -E minikube start --vm-driver=none --cpus 2 --memory 4096 --kubernetes-version=v1.12.0 --extra-config=apiserver.authorization-mode=RBAC
-            sudo chown -R $USER:$USER /home/circleci/.minikube
-      - save_cache:
-          key: kms-vault-operator-minikube-cache
-          paths:
-            - /home/circleci/.minikube
-      - run:
-          name: Deploy Vault cluster
-          command: |
+            k3d create --publish 8200:8200 --image rancher/k3s:v0.7.0
+            sleep 10
+            export KUBECONFIG="$(k3d get-kubeconfig --name=k3s-default)"
+            operator-sdk build patoarvizu/kms-vault-operator:latest
             kubectl apply -f test/manifests/vault/vault-external-service.yaml
             kubectl apply -f test/manifests/vault/vault-operator.yaml
             while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
               sleep 3
               kubectl get pods -l "name=vault-operator"
             done
-      - run:
-          name: Build operator
-          command: |
-            operator-sdk build patoarvizu/kms-vault-operator:latest
-      - run:
-          name: Run tests v1
-          command : |
             kubectl apply -f test/manifests/vault/vault-cluster-v1.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
-              kubectl get pods -l "app=vault"
+              kubectl get pods -l "app=vault" -l "kv_version=v1"
             done
-            minikube service list
-            export VAULT_ADDR=$(minikube service --https --url vault-ext | cut -c 3-)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f test/manifests/vault/vault-cluster-v1.yaml
-      - run:
-          name: Run tests v2
-          command : |
             kubectl apply -f test/manifests/vault/vault-cluster-v2.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
-              kubectl get pods -l "app=vault"
+              kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
-            export VAULT_ADDR=$(minikube service --https --url vault-ext | cut -c 3-)
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
-            kubectl delete -f test/manifests/vault/vault-cluster-v2.yaml
       - run:
           name: Build container
           command: |

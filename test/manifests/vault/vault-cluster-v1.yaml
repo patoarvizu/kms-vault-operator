@@ -6,7 +6,7 @@ metadata:
 spec:
   size: 1
   image: vault:1.0.0
-  bankVaultsImage: banzaicloud/bank-vaults:0.4.14
+  bankVaultsImage: banzaicloud/bank-vaults:0.4.17
   serviceAccount: vault
   serviceType: ClusterIP
   ingress:
@@ -21,6 +21,8 @@ spec:
   unsealConfig:
     kubernetes:
       secretNamespace: default
+  vaultLabels:
+    kv_version: v1
   config:
     storage:
       file:
