@@ -80,6 +80,12 @@ jobs:
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
       - run:
+          name: Install notary
+          command: |
+            curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
+            chmod +x notary
+            sudo mv notary /usr/local/bin
+      - run:
           name: Build container
           command: |
             echo $DOCKER_HUB_KEY | docker login -u $DOCKER_HUB_USER --password-stdin
