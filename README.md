@@ -16,6 +16,9 @@
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
+    - [For security nerds](#for-security-nerds)
+        - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
+        - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
     - [Important notes by this project](#important-notes-by-this-project)
         - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
         - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
@@ -130,6 +133,34 @@ kubectl apply -f deploy/example-kms-vault-secret.yaml
 In addition to managing `KMSVaultSecret` custom resources, this operator also handles a second type of resource called `PartialKMSVaultSecret`. This CRD is similar to `KMSVaultSecret` but only supports the `secrets` field, and doesn't have its own controller. Instead, the purpose of this resource is to hold secrets that can be included in a `KMSVaultSecret`, via the `includeSecrets` field. The single `kmsvaultsecret_controller.go` will aggregate the included secrets along with those of the resource itself and write them all together as a single item in Vault. To keep things as simple as possible, the first iteration of this feature won't support nesting `PartialKMSVaultSecret`s (e.g. by including `PartialKMSVaultSecret`s in other `PartialKMSVaultSecret`s). Rather, the way to include multiple partial secrets is to just list them all in the `includeSecrets` field of the `KMSVaultSecret` resource.
 
 Because of their abstract nature, `PartialKMSVaultSecret`s don't have a path, Vault authenticating method, or KV settings, but they do support the KMS secret encryption context, which is passed down to the concrete `KMSVaultSecret` object.
+
+## For security nerds
+
+### Docker images are signed and published to Docker Hub's Notary server
+
+The [Notary](https://github.com/theupdateframework/notary) project is a CNCF incubating project that aims to provide trust and security to software distribution. Docker Hub runs a Notary server at https://notary.docker.io for the repositories it hosts.
+
+[Docker Content Trust](https://docs.docker.com/engine/security/trust/content_trust/) is the mechanism used to verify digital signatures and enforce security by adding a validating layer.
+
+You can inspect the signed tags for this project by doing `docker trust inspect --pretty docker.io/patoarvizu/kms-vault-operator`, or (if you already have `notary` installed) `notary -d ~/.docker/trust/ -s https://notary.docker.io list docker.io/patoarvizu/kms-vault-operator`.
+
+If you run `docker pull` with `DOCKER_CONTENT_TRUST=1`, the Docker client will only pull images that come from registries that have a Notary server attached (like Docker Hub).
+
+### Docker images are labeled with Git and GPG metadata
+
+In addition to the digital validation done by Docker on the image itself, you can do your own human validation by making sure the image's content matches the Git commit information (including tags if there are any) and that the GPG signature on the commit matches the key on the commit on github.com.
+
+For example, if you run `docker pull patoarvizu/kms-vault-operator:898c158e9c3c313984d9a0c7947f0f3178501cf2` to pull the image tagged with that commit id, then run `docker inspect patoarvizu/kms-vault-operator:898c158e9c3c313984d9a0c7947f0f3178501cf2 | jq -r '.[0].ContainerConfig.Labels'` (assuming you have [jq](https://stedolan.github.io/jq/) installed) you should see that the `GIT_COMMIT` label matches the tag on the image. Furthermore, if you go to https://github.com/patoarvizu/kms-vault-operator/commit/898c158e9c3c313984d9a0c7947f0f3178501cf2 (notice the matching commit id), and click on the **Verified** button, you should be able to confirm that the GPG key ID used to match this commit matches the value of the `SIGNATURE_KEY` label, and that the key belongs to the `AUTHOR_EMAIL` label. When an image belongs to a commit that was tagged, it'll also include a `GIT_TAG` label, to further validate that the image matches the content.
+
+Keep in mind that this isn't tamper-proof. A malicious actor with access to publish images can create one with malicious content but with values for the labels matching those of a valid commit id. However, when combined with Docker Content Trust, the certainty of using a legitimate image is increased because the chances of a bad actor having both the credentials for publishing images, as well as Notary signing credentials are significantly lower and even in that scenario, compromised signing keys can be revoked or rotated.
+
+Here's the list of included Docker labels:
+
+- `AUTHOR_EMAIL`
+- `COMMIT_TIMESTAMP`
+- `GIT_COMMIT`
+- `GIT_TAG`
+- `SIGNATURE_KEY`
 
 ## Important notes by this project
 

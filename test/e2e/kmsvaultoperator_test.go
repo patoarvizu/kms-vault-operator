@@ -136,7 +136,7 @@ func validateSecretExists(secret *operator.KMSVaultSecret, key string, t *testin
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
-	err = wait.Poll(time.Second*2, time.Second*30, func() (done bool, err error) {
+	err = wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
 		secretPath := secret.Spec.Path
 		r, err := vaultClient.Logical().Read(secretPath)
 		if err != nil {
@@ -174,7 +174,7 @@ func validateSecretDoesntExist(secret *operator.KMSVaultSecret, key string, t *t
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
 	}
-	err = wait.Poll(time.Second*2, time.Second*30, func() (done bool, err error) {
+	err = wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
 		r, err := vaultClient.Logical().Read(secret.Spec.Path)
 		if err != nil {
 			return false, err
