@@ -52,6 +52,8 @@ spec:
             secrets:
               items:
                 properties:
+                  emptySecret:
+                    type: boolean
                   encryptedSecret:
                     type: string
                   key:
@@ -62,7 +64,6 @@ spec:
                     type: object
                 required:
                 - key
-                - encryptedSecret
                 type: object
               type: array
             vaultAuthMethod:
@@ -124,6 +125,8 @@ spec:
             secrets:
               items:
                 properties:
+                  emptySecret:
+                    type: boolean
                   encryptedSecret:
                     type: string
                   key:
@@ -134,7 +137,6 @@ spec:
                     type: object
                 required:
                 - key
-                - encryptedSecret
                 type: object
               type: array
           required:
