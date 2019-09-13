@@ -60,6 +60,7 @@ jobs:
             sleep 10
             export KUBECONFIG="$(k3d get-kubeconfig --name=k3s-default)"
             operator-sdk build patoarvizu/kms-vault-operator:latest
+            k3d import-images patoarvizu/kms-vault-operator:latest
             kubectl apply -f test/manifests/vault/vault-external-service.yaml
             kubectl apply -f test/manifests/vault/vault-operator.yaml
             while [ "$(kubectl get deployment vault-operator -o jsonpath={.status.availableReplicas})" != "1" ]; do
