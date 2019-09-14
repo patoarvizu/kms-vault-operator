@@ -16,6 +16,7 @@
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
+        - [Empty secrets](#empty-secrets)
     - [For security nerds](#for-security-nerds)
         - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
         - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
@@ -133,6 +134,10 @@ kubectl apply -f deploy/example-kms-vault-secret.yaml
 In addition to managing `KMSVaultSecret` custom resources, this operator also handles a second type of resource called `PartialKMSVaultSecret`. This CRD is similar to `KMSVaultSecret` but only supports the `secrets` field, and doesn't have its own controller. Instead, the purpose of this resource is to hold secrets that can be included in a `KMSVaultSecret`, via the `includeSecrets` field. The single `kmsvaultsecret_controller.go` will aggregate the included secrets along with those of the resource itself and write them all together as a single item in Vault. To keep things as simple as possible, the first iteration of this feature won't support nesting `PartialKMSVaultSecret`s (e.g. by including `PartialKMSVaultSecret`s in other `PartialKMSVaultSecret`s). Rather, the way to include multiple partial secrets is to just list them all in the `includeSecrets` field of the `KMSVaultSecret` resource.
 
 Because of their abstract nature, `PartialKMSVaultSecret`s don't have a path, Vault authenticating method, or KV settings, but they do support the KMS secret encryption context, which is passed down to the concrete `KMSVaultSecret` object.
+
+### Empty secrets
+
+Although rarely an empty string is required as a secret, sometimes it is needed for backwards compatibility or as a placeholder. Since an empty string is not a valid KMS-encrypted string, the CRD includes a field that signals to the operator that an empty string should be put in the indicated path and field. To do this, simply set `emptySecret: true` to each individual item under `secrets` that you want to inject as a an empty string. Note that when you do this, the operator will ignore anything set in the `encryptedSecret` field, even if it's a valid KMS-encrypted string.
 
 ## For security nerds
 
