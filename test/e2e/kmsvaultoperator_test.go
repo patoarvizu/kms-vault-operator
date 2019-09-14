@@ -337,7 +337,7 @@ func TestKMSVaultSecretPartialSecretV2(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestKMSVaultSecretEmptySecretV1(t *testing.T) {
+func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV1(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": encryptedSecret}, true, make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
@@ -346,10 +346,28 @@ func TestKMSVaultSecretEmptySecretV1(t *testing.T) {
 	ctx.Cleanup()
 }
 
-func TestKMSVaultSecretEmptySecretV2(t *testing.T) {
+func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV2(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": encryptedSecret}, true, make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	validateSecretExists(secret, "EmptyHello", t)
+	cleanUpVaultSecret(secret, t)
+	ctx.Cleanup()
+}
+
+func TestKMSVaultSecretEmptySecretV1(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	setup(t, ctx)
+	secret := createKMSVaultSecret(map[string]string{"EmptyHello": ""}, true, make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	validateSecretExists(secret, "EmptyHello", t)
+	cleanUpVaultSecret(secret, t)
+	ctx.Cleanup()
+}
+
+func TestKMSVaultSecretEmptySecretV2(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	setup(t, ctx)
+	secret := createKMSVaultSecret(map[string]string{"EmptyHello": ""}, true, make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
 	cleanUpVaultSecret(secret, t)
 	ctx.Cleanup()
