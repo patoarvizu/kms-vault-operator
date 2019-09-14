@@ -157,6 +157,13 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error
 	decryptedSecretData := map[string]interface{}{}
 	svc := kms.New(awsSession)
 	for _, s := range secrets {
+		if s.EmptySecret {
+			if len(s.EncryptedSecret) > 0 {
+				logger.Info("Secret is marked as empty, ignoring content", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
+			}
+			decryptedSecretData[s.Key] = ""
+			continue
+		}
 		decoded, err := base64.StdEncoding.DecodeString(s.EncryptedSecret)
 		if err != nil {
 			logger.Info("Error decoding secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)

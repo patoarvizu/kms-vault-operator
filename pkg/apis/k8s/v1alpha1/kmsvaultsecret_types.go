@@ -25,8 +25,9 @@ type KVSettings struct {
 
 type Secret struct {
 	Key             string            `json:"key"`
-	EncryptedSecret string            `json:"encryptedSecret"`
+	EncryptedSecret string            `json:"encryptedSecret,omitempty"`
 	SecretContext   map[string]string `json:"secretContext,omitempty"`
+	EmptySecret     bool              `json:"emptySecret,omitempty"`
 }
 
 // KMSVaultSecretStatus defines the observed state of KMSVaultSecret
