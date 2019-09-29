@@ -107,14 +107,8 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 							Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.KVSettings"),
 						},
 					},
-					"vaultAuthMethod": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
-				Required: []string{"path", "secrets", "kvSettings", "vaultAuthMethod"},
+				Required: []string{"path", "secrets", "kvSettings"},
 			},
 		},
 		Dependencies: []string{

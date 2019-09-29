@@ -66,17 +66,10 @@ spec:
                 - key
                 type: object
               type: array
-            vaultAuthMethod:
-              enum:
-              - k8s
-              - token
-              - userpass
-              type: string
           required:
           - path
           - secrets
           - kvSettings
-          - vaultAuthMethod
           type: object
         status:
           properties:
