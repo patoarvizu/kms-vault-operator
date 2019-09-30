@@ -11,9 +11,6 @@ type KMSVaultSecretSpec struct {
 	Secrets        []Secret   `json:"secrets"`
 	IncludeSecrets []string   `json:"includeSecrets,omitempty"`
 	KVSettings     KVSettings `json:"kvSettings"`
-
-	// +kubebuilder:validation:Enum=k8s,token,userpass
-	VaultAuthMethod string `json:"vaultAuthMethod"`
 }
 
 type KVSettings struct {

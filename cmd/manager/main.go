@@ -12,6 +12,7 @@ import (
 
 	"github.com/patoarvizu/kms-vault-operator/pkg/apis"
 	"github.com/patoarvizu/kms-vault-operator/pkg/controller"
+	"github.com/patoarvizu/kms-vault-operator/pkg/controller/kmsvaultsecret"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -46,6 +47,8 @@ func main() {
 	// Add flags registered by imported packages (e.g. glog and
 	// controller-runtime)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
+
+	pflag.StringVar(&kmsvaultsecret.VaultAuthenticationMethod, "vault-authentication-method", "token", "Method to be used for the controller to authenticate with Vault")
 
 	pflag.Parse()
 

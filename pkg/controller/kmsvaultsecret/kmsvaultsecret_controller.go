@@ -105,7 +105,7 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		instance.Spec.Secrets = append(instance.Spec.Secrets, partialSecretInstance.Spec.Secrets...)
 	}
 
-	vaultClient, err := getAuthenticatedVaultClient(instance.Spec.VaultAuthMethod)
+	vaultClient, err := getAuthenticatedVaultClient(VaultAuthenticationMethod)
 	if err != nil {
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{RequeueAfter: time.Second * 15}, err

@@ -19,6 +19,15 @@ spec:
           image: "patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}"
           command:
           - kms-vault-operator
+          {{- with .Values.authentication }}
+          {{- if .k8s }}
+          - --vault-authentication-method=k8s
+          {{- else if .token }}
+          - --vault-authentication-method=token
+          {{- else if .userpass }}
+          - --vault-authentication-method=userpass
+          {{- end }}
+          {{- end }}
           env:
             - name: WATCH_NAMESPACE
               valueFrom:

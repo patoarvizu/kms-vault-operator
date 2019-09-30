@@ -75,8 +75,7 @@ func createKMSVaultSecret(secrets map[string]string, emptySecret bool, secretCon
 			Finalizers: finalizers,
 		},
 		Spec: operator.KMSVaultSecretSpec{
-			Path:            secretPath,
-			VaultAuthMethod: "k8s",
+			Path: secretPath,
 			KVSettings: operator.KVSettings{
 				EngineVersion: engineVersion,
 			},

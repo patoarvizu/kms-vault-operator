@@ -10,9 +10,9 @@
     - [Configuration](#configuration)
         - [AWS](#aws)
         - [Vault](#vault)
-            - [Kubernetes authentication method (`vaultAuthMethod: k8s`)](#kubernetes-authentication-method-vaultauthmethod-k8s)
-            - [Vault token authentication method (`vaultAuthMethod: token`)](#vault-token-authentication-method-vaultauthmethod-token)
-            - [Vault userpass authentication method (`vaultAuthMethod: userpass`)](#vault-userpass-authentication-method-vaultauthmethod-userpass)
+            - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
+            - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
+            - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
@@ -51,9 +51,9 @@ This operator manages `KMSVaultSecret` CRDs containing secrets encrypted with a 
 
 The AWS credentials to do the decryption operation use [aws-sdk-go](https://github.com/aws/aws-sdk-go) and follows the default [credential precedence order](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html), so if you're going to inject environment variables or configuration files, you should do so on the operator's `Deployment` manifest (e.g. [deploy/operator.yaml](deploy/operator.yaml)).
 
-Each secret will define a `path`, a `vaultAuthMethod`, a set of `kvSettings`, and a list of `secrets`. Each `secret` will have a `key` and `encryptedSecret` field of type `string`, and a `secretContext` field that's an arbitrary set of key-value pairs corresponding to the [encryption context](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#encrypt_context) with which the secret was encrypted.
+Each secret will define a `path`, a set of `kvSettings`, and a list of `secrets`. Each `secret` will have a `key` and `encryptedSecret` field of type `string`, and a `secretContext` field that's an arbitrary set of key-value pairs corresponding to the [encryption context](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#encrypt_context) with which the secret was encrypted.
 
-This first version of the operator supports authenticating to Vault via the [Kubernetes auth method](https://www.vaultproject.io/docs/auth/kubernetes.html) (i.e. `vaultAuthMethod: k8s`), the [Userpass authe method](https://www.vaultproject.io/docs/auth/userpass.html), or directly via a [Vault token](https://www.vaultproject.io/docs/auth/token.html) (i.e. `vaultAuthMethod: token`). Support for more authentication methods will be added in the future. Note that the configuration required for the operator to perform KMS and Vault operations is not done on the `KMSVaultSecret` CR but on the operator `Deployment` itself, and is documented below.
+This first version of the operator supports authenticating to Vault via the [Kubernetes auth method](https://www.vaultproject.io/docs/auth/kubernetes.html), the [Userpass authe method](https://www.vaultproject.io/docs/auth/userpass.html), or directly via a [Vault token](https://www.vaultproject.io/docs/auth/token.html). Support for more authentication methods will be added in the future. Note that the configuration required for the operator to perform KMS and Vault operations is not done on the `KMSVaultSecret` CR but on the operator `Deployment` itself, and is documented below.
 
 ## Configuration
 
@@ -67,14 +67,14 @@ In addition to the AWS configuration, Vault configuration should be injected too
 
 The following sections document the environment variables used by each authentication method and their defaults. They are used in addition to the AWS and base Vault variables described before.
 
-#### Kubernetes authentication method (`vaultAuthMethod: k8s`)
+#### Kubernetes authentication method (`--vault-authentication-method=k8s`)
 
 Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
 `VAULT_K8S_ROLE` | N | `kms-vault-operator` | The Vault role that the client should authenticate as on the Kubernetes login endpoint.
 `VAULT_K8S_LOGIN_ENDPOINT` | N | `auth/kubernetes/login` | The Kubernetes authentication endpoint in Vault
 
-#### Vault token authentication method (`vaultAuthMethod: token`)
+#### Vault token authentication method (`--vault-authentication-method=token`)
 
 This method simply follows the convention and uses the `VAULT_TOKEN` environment variable to authenticate.
 
@@ -82,7 +82,7 @@ Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
 `VAULT_TOKEN` | Y | | The Vault token used to perform operations on Vault.
 
-#### Vault userpass authentication method (`vaultAuthMethod: userpass`)
+#### Vault userpass authentication method (`--vault-authentication-method=userpass`)
 
 Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
@@ -116,7 +116,6 @@ metadata:
   namesace: default
 spec:
   path: secret/test/kms-vault-secret
-  vaultAuthMethod: <auth-method>
   kvSettings:
     engineVersion: v1
   secrets:
@@ -124,7 +123,7 @@ spec:
       encryptedSecret: <kms-encrypted-secret>
 ```
 
-Make sure you also set the appropriate `vaultAuthMethod` based on your setup. After that, assuming the resource is in `deploy/example-kms-vault-secret.yaml`, just run:
+After that, assuming the resource is in `deploy/example-kms-vault-secret.yaml`, just run:
 ```
 kubectl apply -f deploy/example-kms-vault-secret.yaml
 ```
