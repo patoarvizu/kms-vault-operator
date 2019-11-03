@@ -148,7 +148,7 @@ func removeFinalizer(allFinalizers []string, finalizer string) []string {
 	return result
 }
 
-func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error) {
+func decryptSecrets(secrets []k8sv1alpha1.Secret, context map[string]string) (map[string]interface{}, error) {
 	logger := log.WithValues("Function", "decryptSecrets")
 	awsSession, err := session.NewSession()
 	if err != nil {
@@ -169,7 +169,7 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error
 			logger.Info("Error decoding secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
 			continue
 		}
-		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: convertContextMap(s.SecretContext)})
+		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: getApplicableContext(s.SecretContext, context)})
 		if err != nil {
 			logger.Info("Error decrypting secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
 			continue
@@ -177,6 +177,14 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret) (map[string]interface{}, error
 		decryptedSecretData[s.Key] = string(result.Plaintext)
 	}
 	return decryptedSecretData, nil
+}
+
+func getApplicableContext(lowerContext map[string]string, higherContext map[string]string) map[string]*string {
+	if len(lowerContext) > 0 {
+		return convertContextMap(lowerContext)
+	} else {
+		return convertContextMap(higherContext)
+	}
 }
 
 func convertContextMap(context map[string]string) map[string]*string {

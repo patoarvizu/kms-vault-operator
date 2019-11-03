@@ -8,7 +8,7 @@ import (
 type KVv1Writer struct{}
 
 func (KVv1 KVv1Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *vaultapi.Client) error {
-	decryptedSecretData, err := decryptSecrets(secret.Spec.Secrets)
+	decryptedSecretData, err := decryptSecrets(secret.Spec.Secrets, secret.Spec.SecretContext)
 	if err != nil {
 		return err
 	}

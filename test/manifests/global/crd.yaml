@@ -49,6 +49,10 @@ spec:
               type: object
             path:
               type: string
+            secretContext:
+              additionalProperties:
+                type: string
+              type: object
             secrets:
               items:
                 properties:
@@ -81,6 +85,7 @@ spec:
   - name: v1alpha1
     served: true
     storage: true
+
 
 ---
 
@@ -115,6 +120,10 @@ spec:
           type: object
         spec:
           properties:
+            secretContext:
+              additionalProperties:
+                type: string
+              type: object
             secrets:
               items:
                 properties:
