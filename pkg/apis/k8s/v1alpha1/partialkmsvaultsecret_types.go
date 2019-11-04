@@ -7,7 +7,8 @@ import (
 // PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret
 // +k8s:openapi-gen=true
 type PartialKMSVaultSecretSpec struct {
-	Secrets []Secret `json:"secrets"`
+	Secrets       []Secret          `json:"secrets"`
+	SecretContext map[string]string `json:"secretContext,omitempty"`
 }
 
 // PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret

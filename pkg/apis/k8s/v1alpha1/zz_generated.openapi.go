@@ -89,6 +89,19 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 							},
 						},
 					},
+					"secretContext": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"includeSecrets": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -191,6 +204,19 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretSpec(ref common.Reference
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1.Secret"),
+									},
+								},
+							},
+						},
+					},
+					"secretContext": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
 									},
 								},
 							},

@@ -7,10 +7,11 @@ import (
 // KMSVaultSecretSpec defines the desired state of KMSVaultSecret
 // +k8s:openapi-gen=true
 type KMSVaultSecretSpec struct {
-	Path           string     `json:"path"`
-	Secrets        []Secret   `json:"secrets"`
-	IncludeSecrets []string   `json:"includeSecrets,omitempty"`
-	KVSettings     KVSettings `json:"kvSettings"`
+	Path           string            `json:"path"`
+	Secrets        []Secret          `json:"secrets"`
+	SecretContext  map[string]string `json:"secretContext,omitempty"`
+	IncludeSecrets []string          `json:"includeSecrets,omitempty"`
+	KVSettings     KVSettings        `json:"kvSettings"`
 }
 
 type KVSettings struct {
