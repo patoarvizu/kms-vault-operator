@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7-dev-preview/ubi-minimal:7.6
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1
 
 ARG GIT_COMMIT="unspecified"
 LABEL GIT_COMMIT=$GIT_COMMIT
