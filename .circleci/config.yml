@@ -110,6 +110,7 @@ jobs:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: false
           project: patoarvizu/kms-vault-operator
+          severity-threshold: low
 
 workflows:
   version: 2
