@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  snyk: snyk/snyk@0.0.8
+
 jobs:
   build:
     machine:
@@ -103,12 +106,17 @@ jobs:
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             docker push patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:latest
+      - snyk/scan:
+          docker-image-name: patoarvizu/kms-vault-operator:latest
+          fail-on-issues: false
+          project: patoarvizu/kms-vault-operator
 
 workflows:
   version: 2
   build-operator:
     jobs:
       - build:
+          context: authentication-tokens
           filters:
             tags:
               only: /^v\d+\.\d+.\d+$/
