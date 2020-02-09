@@ -18,9 +18,6 @@ jobs:
       - restore_cache:
           keys:
             - kms-vault-operator-golang-cache-{{ checksum "Gopkg.lock" }}
-      - snyk/scan:
-          fail-on-issues: true
-          project: patoarvizu/kms-vault-operator-golang
       - run:
           name: Install golang
           command: |
@@ -89,7 +86,7 @@ jobs:
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true
-          project: patoarvizu/kms-vault-operator-docker
+          project: patoarvizu/kms-vault-operator
           severity-threshold: low
       - run:
           name: Install notary
