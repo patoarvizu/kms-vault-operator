@@ -18,6 +18,7 @@ jobs:
       - restore_cache:
           keys:
             - kms-vault-operator-golang-cache-{{ checksum "Gopkg.lock" }}
+      - snyk/scan
       - run:
           name: Install golang
           command: |
