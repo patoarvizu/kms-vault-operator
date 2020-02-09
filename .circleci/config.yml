@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  snyk: snyk/snyk@0.0.8
+
 jobs:
   build:
     machine:
@@ -80,6 +83,11 @@ jobs:
               kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/crd.yaml --namespaced-manifest ./test/manifests/namespaced/operator.yaml --go-test-flags '-v -run .*V2'
+      - snyk/scan:
+          docker-image-name: patoarvizu/kms-vault-operator:latest
+          fail-on-issues: true
+          project: patoarvizu/kms-vault-operator
+          severity-threshold: low
       - run:
           name: Install notary
           command: |
@@ -109,6 +117,7 @@ workflows:
   build-operator:
     jobs:
       - build:
+          context: authentication-tokens
           filters:
             tags:
               only: /^v\d+\.\d+.\d+$/
