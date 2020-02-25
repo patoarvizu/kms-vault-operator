@@ -585,9 +585,13 @@
   version = "1.0.1"
 
 [[projects]]
-  digest = "1:0bd15e3e708ab1ccba566b024fcf9982b51a3ab8498d53c8d416dd8f3f9b8211"
+  digest = "1:fd0709b0bcbb11d6549899c751c4cab29341122a8661e8386b6d7b19cbdea390"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
+    "internal/pkg/scaffold",
+    "internal/pkg/scaffold/ansible",
+    "internal/pkg/scaffold/helm",
+    "internal/pkg/scaffold/input",
     "internal/util/fileutil",
     "internal/util/k8sutil",
     "internal/util/projutil",
@@ -596,17 +600,13 @@
     "pkg/leader",
     "pkg/log/zap",
     "pkg/metrics",
-    "pkg/scaffold",
-    "pkg/scaffold/ansible",
-    "pkg/scaffold/helm",
-    "pkg/scaffold/input",
     "pkg/test",
     "pkg/test/e2eutil",
     "version",
   ]
   pruneopts = "NT"
-  revision = "61e0c23e9d2e217f8d95ac104a8f2545c102b5c3"
-  version = "v0.6.0"
+  revision = "0edd82327d0928ff79834fd5ff284388ea239bc1"
+  version = "v0.7.1"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -1250,7 +1250,7 @@
   revision = "bc9033e9ec9e0cec1552e9af7c079cb878dfc511"
 
 [[projects]]
-  digest = "1:051b8d6d2aba59a6a52d920d4c901ec6d785a3e3fa777072c447819abc706206"
+  digest = "1:5840664ce673278c5e0cbc3dd24a85f6ec8fad28eea38d3a815bed9d5b0b1403"
   name = "k8s.io/helm"
   packages = [
     "pkg/chartutil",
@@ -1271,8 +1271,8 @@
     "pkg/version",
   ]
   pruneopts = "NT"
-  revision = "79d07943b03aea2b76c12644b4b54733bc5958d6"
-  version = "v2.13.0"
+  revision = "618447cbf203d147601b4b9bd7f8c37a5d39fbb4"
+  version = "v2.13.1"
 
 [[projects]]
   digest = "1:29f93bb84d907a2c035e729e19d66fe52165d8c905cb3ef1920140d76ae6afaf"
