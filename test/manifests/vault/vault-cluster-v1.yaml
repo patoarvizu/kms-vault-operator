@@ -21,6 +21,8 @@ spec:
   unsealConfig:
     kubernetes:
       secretNamespace: default
+  statsdDisabled: true
+  serviceMonitorEnabled: false
   vaultLabels:
     kv_version: v1
   config:
@@ -33,6 +35,7 @@ spec:
         tls_cert_file: /vault/tls/server.crt
         tls_key_file: /vault/tls/server.key
     ui: false
+    api_addr: https://vault:8200
   externalConfig:
     policies:
       - name: allow_secrets
@@ -40,7 +43,6 @@ spec:
           capabilities = ["create", "read", "update", "delete", "list"]
           }
     auth:
-      - type: userpass
       - type: kubernetes
         roles:
           - name: kms-vault-operator
@@ -54,9 +56,3 @@ spec:
         description: General secrets.
         options:
           version: 1
-    startupSecrets:
-      - type: kv
-        path: auth/userpass/users/test
-        data:
-          password: test
-          policies: allow_secrets
