@@ -12,6 +12,7 @@ jobs:
       OPERATOR_SDK_VERSION: 0.8.2
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
+      GO111MODULE: "on"
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
     steps:
       - checkout
@@ -34,7 +35,6 @@ jobs:
       - run:
           name: Build image
           command: |
-            go mod vendor
             operator-sdk build patoarvizu/kms-vault-operator:latest
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
