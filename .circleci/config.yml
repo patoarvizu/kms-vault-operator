@@ -34,6 +34,7 @@ jobs:
       - run:
           name: Build image
           command: |
+            go mod vendor
             operator-sdk build patoarvizu/kms-vault-operator:latest
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
