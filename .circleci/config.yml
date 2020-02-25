@@ -37,12 +37,12 @@ jobs:
           command: |
             go mod vendor
             operator-sdk build patoarvizu/kms-vault-operator:latest
-      - snyk/scan:
-          docker-image-name: patoarvizu/kms-vault-operator:latest
-          fail-on-issues: true
-          project: patoarvizu/kms-vault-operator
-          severity-threshold: low
-          additional-arguments: "--policy-path=.snyk"
+      # - snyk/scan:
+      #     docker-image-name: patoarvizu/kms-vault-operator:latest
+      #     fail-on-issues: true
+      #     project: patoarvizu/kms-vault-operator
+      #     severity-threshold: low
+      #     additional-arguments: "--policy-path=.snyk"
       - run:
           name: Install kubectl
           command: |
