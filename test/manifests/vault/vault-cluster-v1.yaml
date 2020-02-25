@@ -5,8 +5,8 @@ metadata:
   namespace: default
 spec:
   size: 1
-  image: vault:1.0.0
-  bankVaultsImage: banzaicloud/bank-vaults:0.4.17
+  image: vault:1.3.2
+  bankVaultsImage: banzaicloud/bank-vaults:0.9.0
   serviceAccount: vault
   serviceType: ClusterIP
   ingress:

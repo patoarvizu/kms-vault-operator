@@ -21,6 +21,7 @@ type PartialKMSVaultSecretStatus struct {
 
 // PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type PartialKMSVaultSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
