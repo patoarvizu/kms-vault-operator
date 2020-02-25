@@ -88,6 +88,7 @@ jobs:
           fail-on-issues: true
           project: patoarvizu/kms-vault-operator
           severity-threshold: low
+          additional-arguments: "--policy-path=.snyk"
       - run:
           name: Install notary
           command: |
