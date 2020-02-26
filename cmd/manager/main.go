@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/patoarvizu/kms-vault-operator/pkg/apis"
@@ -17,7 +18,6 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -108,12 +108,6 @@ func main() {
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
-	}
-
-	// Create Service object to expose the metrics port.
-	_, err = metrics.ExposeMetricsPort(ctx, metricsPort)
-	if err != nil {
-		log.Info(err.Error())
 	}
 
 	log.Info("Starting the Cmd.")
