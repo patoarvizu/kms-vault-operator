@@ -3,7 +3,6 @@ module github.com/patoarvizu/kms-vault-operator
 go 1.12
 
 require (
-	github.com/NYTimes/gziphandler v1.0.1 // indirect
 	github.com/aws/aws-sdk-go v1.19.1
 	github.com/emicklei/go-restful v2.11.2+incompatible // indirect
 	github.com/go-logr/logr v0.1.0
@@ -46,9 +45,12 @@ replace (
 
 replace (
 	github.com/coreos/prometheus-operator => github.com/coreos/prometheus-operator v0.29.0
+	// Pinned to v2.9.2 (kubernetes-1.13.1) so https://proxy.golang.org can
+	// resolve it correctly.
+	github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.0.0-20190424153033-d3245f150225
 	k8s.io/kube-state-metrics => k8s.io/kube-state-metrics v1.6.0
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.12
 	sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.11-0.20190411181648-9d55346c2bde
 )
 
-replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.9.0
+replace github.com/operator-framework/operator-sdk => github.com/operator-framework/operator-sdk v0.10.0
