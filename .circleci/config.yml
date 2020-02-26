@@ -37,6 +37,7 @@ jobs:
           command: |
             go mod vendor
             operator-sdk build patoarvizu/kms-vault-operator:latest
+          no_output_timeout: 30m
       # - snyk/scan:
       #     docker-image-name: patoarvizu/kms-vault-operator:latest
       #     fail-on-issues: true
