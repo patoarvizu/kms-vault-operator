@@ -45,6 +45,7 @@ type KMSVaultSecretStatus struct {
 // KMSVaultSecret is the Schema for the kmsvaultsecrets API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=kmsvaultsecrets,scope=Namespaced
 type KMSVaultSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

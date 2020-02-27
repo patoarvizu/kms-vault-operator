@@ -14,6 +14,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
+      description: KMSVaultSecret is the Schema for the kmsvaultsecrets API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -28,6 +29,7 @@ spec:
         metadata:
           type: object
         spec:
+          description: KMSVaultSecretSpec defines the desired state of KMSVaultSecret
           properties:
             includeSecrets:
               items:
@@ -36,7 +38,6 @@ spec:
             kvSettings:
               properties:
                 casIndex:
-                  format: int64
                   minimum: 0
                   type: integer
                 engineVersion:
@@ -71,15 +72,17 @@ spec:
                 type: object
               type: array
           required:
+          - kvSettings
           - path
           - secrets
-          - kvSettings
           type: object
         status:
+          description: KMSVaultSecretStatus defines the observed state of KMSVaultSecret
           properties:
             created:
               type: boolean
           type: object
+      type: object
   version: v1alpha1
   versions:
   - name: v1alpha1
@@ -104,6 +107,8 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
+      description: PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets
+        API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -118,6 +123,7 @@ spec:
         metadata:
           type: object
         spec:
+          description: PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret
           properties:
             secretContext:
               additionalProperties:
@@ -144,10 +150,12 @@ spec:
           - secrets
           type: object
         status:
+          description: PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret
           properties:
             created:
               type: boolean
           type: object
+      type: object
   version: v1alpha1
   versions:
   - name: v1alpha1
