@@ -9,7 +9,7 @@ jobs:
         enabled: true
         image: circleci/classic:201808-01
     environment:
-      OPERATOR_SDK_VERSION: 0.11.0
+      OPERATOR_SDK_VERSION: 0.12.0
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"

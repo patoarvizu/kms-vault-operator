@@ -40,7 +40,7 @@ func (in *KMSVaultSecret) DeepCopyObject() runtime.Object {
 func (in *KMSVaultSecretList) DeepCopyInto(out *KMSVaultSecretList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]KMSVaultSecret, len(*in))
@@ -169,7 +169,7 @@ func (in *PartialKMSVaultSecret) DeepCopyObject() runtime.Object {
 func (in *PartialKMSVaultSecretList) DeepCopyInto(out *PartialKMSVaultSecretList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]PartialKMSVaultSecret, len(*in))

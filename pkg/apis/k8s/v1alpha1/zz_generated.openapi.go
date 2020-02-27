@@ -25,6 +25,7 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecret(ref common.ReferenceCallback) c
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "KMSVaultSecret is the Schema for the kmsvaultsecrets API",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -68,6 +69,7 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "KMSVaultSecretSpec defines the desired state of KMSVaultSecret",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"path": {
 						SchemaProps: spec.SchemaProps{
@@ -76,6 +78,12 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 						},
 					},
 					"secrets": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": "key",
+								"x-kubernetes-list-type":     "map",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
 							Items: &spec.SchemaOrArray{
@@ -91,6 +99,7 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -101,6 +110,11 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretSpec(ref common.ReferenceCallbac
 						},
 					},
 					"includeSecrets": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
 							Items: &spec.SchemaOrArray{
@@ -132,6 +146,7 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "KMSVaultSecretStatus defines the observed state of KMSVaultSecret",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"created": {
 						SchemaProps: spec.SchemaProps{
@@ -142,7 +157,6 @@ func schema_pkg_apis_k8s_v1alpha1_KMSVaultSecretStatus(ref common.ReferenceCallb
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -151,6 +165,7 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecret(ref common.ReferenceCall
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -194,8 +209,15 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretSpec(ref common.Reference
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"secrets": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-map-keys": "key",
+								"x-kubernetes-list-type":     "map",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
 							Items: &spec.SchemaOrArray{
@@ -211,6 +233,7 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretSpec(ref common.Reference
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -234,6 +257,7 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretStatus(ref common.Referen
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"created": {
 						SchemaProps: spec.SchemaProps{
@@ -244,6 +268,5 @@ func schema_pkg_apis_k8s_v1alpha1_PartialKMSVaultSecretStatus(ref common.Referen
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }

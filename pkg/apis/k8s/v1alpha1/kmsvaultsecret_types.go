@@ -7,15 +7,21 @@ import (
 // KMSVaultSecretSpec defines the desired state of KMSVaultSecret
 // +k8s:openapi-gen=true
 type KMSVaultSecretSpec struct {
-	Path           string            `json:"path"`
-	Secrets        []Secret          `json:"secrets"`
-	SecretContext  map[string]string `json:"secretContext,omitempty"`
-	IncludeSecrets []string          `json:"includeSecrets,omitempty"`
-	KVSettings     KVSettings        `json:"kvSettings"`
+	Path string `json:"path"`
+
+	// +listType=map
+	// +listMapKey=key
+	Secrets       []Secret          `json:"secrets"`
+	SecretContext map[string]string `json:"secretContext,omitempty"`
+
+	// +listType=set
+	IncludeSecrets []string `json:"includeSecrets,omitempty"`
+
+	KVSettings KVSettings `json:"kvSettings"`
 }
 
 type KVSettings struct {
-	// +kubebuilder:validation:Enum=v1,v2
+	// +kubebuilder:validation:Enum={"v1","v2"}
 	EngineVersion string `json:"engineVersion"`
 	// +kubebuilder:validation:Minimum=0
 	CASIndex int `json:"casIndex,omitempty"`
