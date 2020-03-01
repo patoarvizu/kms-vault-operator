@@ -19,9 +19,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -53,7 +53,7 @@ var rec record.EventRecorder
 var reqLogger logr.Logger
 
 func Add(mgr manager.Manager) error {
-	rec = mgr.GetRecorder("kms-vault-controller")
+	rec = mgr.GetEventRecorderFor("kms-vault-controller")
 	return add(mgr, newReconciler(mgr))
 }
 

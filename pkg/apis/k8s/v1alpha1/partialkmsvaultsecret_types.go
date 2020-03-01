@@ -7,6 +7,8 @@ import (
 // PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret
 // +k8s:openapi-gen=true
 type PartialKMSVaultSecretSpec struct {
+	// +listType=map
+	// +listMapKey=key
 	Secrets       []Secret          `json:"secrets"`
 	SecretContext map[string]string `json:"secretContext,omitempty"`
 }
@@ -21,6 +23,8 @@ type PartialKMSVaultSecretStatus struct {
 
 // PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=partialkmsvaultsecrets,scope=Namespaced
 type PartialKMSVaultSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

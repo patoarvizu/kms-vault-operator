@@ -31,11 +31,8 @@ spec:
       serviceAccountName: vault-operator
       containers:
         - name: vault-operator
-          image: banzaicloud/vault-operator:0.4.17
+          image: banzaicloud/vault-operator:0.9.0
           imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 9091
-              name: metrics
           command:
             - vault-operator
           livenessProbe:
@@ -101,6 +98,8 @@ rules:
       - namespaces
     verbs:
       - get
+      - list
+      - watch
   - apiGroups:
       - extensions
     resources:
@@ -110,6 +109,7 @@ rules:
       - create
       - update
       - list
+      - watch
   - apiGroups:
       - apps
     resources:
@@ -132,12 +132,6 @@ rules:
       - '*'
     verbs:
       - '*'
-  - apiGroups:
-      - etcd.database.coreos.com
-    resources:
-      - "*"
-    verbs:
-      - "*"
 
 ---
 
