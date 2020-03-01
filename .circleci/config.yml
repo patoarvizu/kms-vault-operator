@@ -80,12 +80,12 @@ jobs:
               kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V2'
-      # - snyk/scan:
-      #     docker-image-name: patoarvizu/kms-vault-operator:latest
-      #     fail-on-issues: true
-      #     project: patoarvizu/kms-vault-operator
-      #     severity-threshold: low
-      #     additional-arguments: "--policy-path=.snyk"
+      - snyk/scan:
+          docker-image-name: patoarvizu/kms-vault-operator:latest
+          fail-on-issues: true
+          project: patoarvizu/kms-vault-operator
+          severity-threshold: low
+          additional-arguments: "--policy-path=.snyk"
       - run:
           name: Install notary
           command: |
