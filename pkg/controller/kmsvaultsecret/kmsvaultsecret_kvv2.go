@@ -26,7 +26,7 @@ func (KVv2 KVv2Writer) write(secret *k8sv1alpha1.KMSVaultSecret, vaultClient *va
 			return nil
 		}
 	}
-	decryptedSecretData, err := decryptSecrets(secret.Spec.Secrets, secret.Spec.SecretContext)
+	decryptedSecretData, err := decryptSecrets(secret)
 	if err != nil {
 		return err
 	}
