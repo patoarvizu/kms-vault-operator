@@ -148,7 +148,7 @@ func removeFinalizer(allFinalizers []string, finalizer string) []string {
 	return result
 }
 
-func decryptSecrets(secrets []k8sv1alpha1.Secret, context map[string]string) (map[string]interface{}, error) {
+func decryptSecrets(secret *k8sv1alpha1.KMSVaultSecret) (map[string]interface{}, error) {
 	logger := log.WithValues("Function", "decryptSecrets")
 	awsSession, err := session.NewSession()
 	if err != nil {
@@ -156,7 +156,7 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret, context map[string]string) (ma
 	}
 	decryptedSecretData := map[string]interface{}{}
 	svc := kms.New(awsSession)
-	for _, s := range secrets {
+	for _, s := range secret.Spec.Secrets {
 		if s.EmptySecret {
 			if len(s.EncryptedSecret) > 0 {
 				logger.Info("Secret is marked as empty, ignoring content", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
@@ -167,11 +167,13 @@ func decryptSecrets(secrets []k8sv1alpha1.Secret, context map[string]string) (ma
 		decoded, err := base64.StdEncoding.DecodeString(s.EncryptedSecret)
 		if err != nil {
 			logger.Info("Error decoding secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
+			rec.Event(secret, corev1.EventTypeNormal, "DecodingError", fmt.Sprintf("Error decoding key %s", s.Key))
 			continue
 		}
-		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: getApplicableContext(s.SecretContext, context)})
+		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: getApplicableContext(s.SecretContext, secret.Spec.SecretContext)})
 		if err != nil {
 			logger.Info("Error decrypting secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
+			rec.Event(secret, corev1.EventTypeNormal, "DecryptingError", fmt.Sprintf("Error decrypting key %s", s.Key))
 			continue
 		}
 		decryptedSecretData[s.Key] = string(result.Plaintext)
