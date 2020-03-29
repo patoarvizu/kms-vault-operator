@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -470,5 +471,63 @@ func TestKMSVaultSecretEmptySecretV2(t *testing.T) {
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": ""}, true, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
 	cleanUpVaultSecret(secret, t)
+	ctx.Cleanup()
+}
+
+func TestWebhookRejectsBadEncoding(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	setup(t, ctx)
+	secretsMap := convertToSecretMap(map[string]string{"Secret": "BadEncoding"}, make(map[string]string), false)
+	secret := &operator.KMSVaultSecret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "KMSVaultSecret",
+			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-secret",
+			Namespace: "default",
+		},
+		Spec: operator.KMSVaultSecretSpec{
+			Path: "secret/data/test-secret",
+			KVSettings: operator.KVSettings{
+				EngineVersion: "v1",
+			},
+			Secrets:       secretsMap,
+			SecretContext: map[string]string{"Environment": "Test"},
+		},
+	}
+	err := framework.Global.Client.Create(context.TODO(), secret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	if err == nil {
+		t.Error(fmt.Sprint("Secret with bad encoding should've thrown an error"))
+	}
+	ctx.Cleanup()
+}
+
+func TestWebhookRejectsBadEncryption(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	setup(t, ctx)
+	secretsMap := convertToSecretMap(map[string]string{"Secret": encryptedSecret}, make(map[string]string), false)
+	secret := &operator.KMSVaultSecret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "KMSVaultSecret",
+			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-secret",
+			Namespace: "default",
+		},
+		Spec: operator.KMSVaultSecretSpec{
+			Path: "secret/data/test-secret",
+			KVSettings: operator.KVSettings{
+				EngineVersion: "v1",
+			},
+			Secrets:       secretsMap,
+			SecretContext: map[string]string{"Environment": "Test"},
+		},
+	}
+	err := framework.Global.Client.Create(context.TODO(), secret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
+	if err == nil {
+		t.Error(fmt.Sprint("Secret with bad encryption should've thrown an error"))
+	}
 	ctx.Cleanup()
 }

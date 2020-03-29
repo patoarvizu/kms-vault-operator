@@ -1,0 +1,29 @@
+kind: ValidatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1beta1
+metadata:
+  name: kms-vault-validating-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: default/kms-vault-validating-webhook
+webhooks:
+- name: kms-vault-validating-webhook.patoarvizu.dev
+  rules:
+  - apiGroups:
+    - k8s.patoarvizu.dev
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - kmsvaultsecrets
+    - partialkmsvaultsecrets
+  failurePolicy: Fail
+  clientConfig:
+    caBundle: Cg==
+    service:
+      namespace: default
+      name: kms-vault-validating-webhook
+  namespaceSelector:
+    matchExpressions:
+    - key: kms-vault-operator
+      operator: DoesNotExist
