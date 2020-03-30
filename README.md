@@ -17,6 +17,7 @@
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
         - [Empty secrets](#empty-secrets)
+        - [Validating webhook](#validating-webhook)
     - [For security nerds](#for-security-nerds)
         - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
         - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
@@ -25,7 +26,7 @@
         - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
         - [No validation on target path](#no-validation-on-target-path)
         - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
-        - [Decryption or decoding errors are ignored](#decryption-or-decoding-errors-are-ignored)
+        - [Decryption or decoding errors are ignored (but logged)](#decryption-or-decoding-errors-are-ignored-but-logged)
         - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
         - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
         - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
@@ -138,6 +139,12 @@ Because of their abstract nature, `PartialKMSVaultSecret`s don't have a path, Va
 
 Although rarely an empty string is required as a secret, sometimes it is needed for backwards compatibility or as a placeholder. Since an empty string is not a valid KMS-encrypted string, the CRD includes a field that signals to the operator that an empty string should be put in the indicated path and field. To do this, simply set `emptySecret: true` to each individual item under `secrets` that you want to inject as a an empty string. Note that when you do this, the operator will ignore anything set in the `encryptedSecret` field, even if it's a valid KMS-encrypted string.
 
+### Validating webhook
+
+The Docker image contains another binary (`kms-vault-validating-webhook`) that can be used as a server that a `ValidatingWebhookConfiguration` calls to validate either `KMSVaultSecret`s or `PartialKMSVaultSecret`s and prevent them from being picked up by the controller in the first place. Since this binary is separate from the main one, it would need to be deployed either as a sidecar or as a separate `Deployment`, as well as requiring its own `Service`. You can find an example of how to deploy it as a sidecar [here](deploy/operator.yaml).
+
+Keep in mind that a `ValidatingWebhookConfiguration` requires a valid CA bundle to trust the webhook over TLS. While this can be any certificate generated offline, you can also use [`cert-manager`](https://github.com/jetstack/cert-manager/) to make it easy to generate certificates as Kubernetes `Secret`s and mount them on containers (like the webhook), or to inject the corresponding CA bundle in `ValidatingWebhookConfiguration`s.
+
 ## For security nerds
 
 ### Docker images are signed and published to Docker Hub's Notary server
@@ -186,9 +193,9 @@ Because the controller is designed to write the secret to Vault continuously, it
 
 The kms-vault-operator controller supports removing secrets from Vault by setting `delete.k8s.patoarvizu.dev` as a [Kubernetes finalizer](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/#finalizers). Support for this for K/V V1 is simple since secrets are not versioned, but when the secret is for K/V V2, deleting a `KMSVaultSecret` object will delete **ALL** of its versions and metadata from Vault, so handle it with care. If the secret is V2, the path for the `DELETE` operation is the same as the input one, replacing `secret/data/` with `secret/metadata/`. There is currently no support for removing a single version of a K/V V2 secret.
 
-### Decryption or decoding errors are ignored
+### Decryption or decoding errors are ignored (but logged)
 
-If a secret is incorrectly encoded or encrypted (including if the encryption context doesn't match the secret), the operator will skip those secrets and will continue writing the rest. This applies to individual items in the `secrets` list, i.e. the controller will still apply other secrets within the same `KMSVaultSecret` even if one of them fails.
+If the [validating webhook](#validating-webhook) mentioned above is deployed, then the controller won't (in theory) need to deal with erroneous secrets since they're never committed to storage. However, if the webhook is not in place, and a secret is incorrectly encoded or encrypted (including if the encryption context doesn't match the secret), the operator will log the error, skip those secrets, and continue writing the rest. This applies to individual items in the `secrets` list, i.e. the controller will still apply other secrets within the same `KMSVaultSecret` even if one of them fails. The controller, however, will trigger an event of type `Warning` for each `encryptedSecret` that it wasn't able to decode or decrypt.
 
 ### Support for K/V V2 is limited (as of this version)
 
