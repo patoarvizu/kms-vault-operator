@@ -97,7 +97,7 @@ The `deploy/` directory has some statically defined manifests that you can modif
 Tiller is not required to deploy this chart. It can be deployed by applying the charts rendered by `helm template` directly. For example, to deploy a chart with the `deploy/helm-values/vault-token-operator-values.yaml` values file, you can run:
 
 ```
-helm template -n default -f deploy/vault-token-operator-values.yaml helm/kms-vault-operator/ | kubectl apply -f -
+helm template -n default -f deploy/helm-values/vault-token-operator-values.yaml helm/kms-vault-operator/ | kubectl apply -f -
 ```
 
 ### Creating a secret
