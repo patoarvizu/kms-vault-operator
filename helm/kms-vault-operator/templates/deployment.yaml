@@ -77,3 +77,42 @@ spec:
                   key: {{ .userpass.password.secretKey }}
             {{- end }}
             {{- end }}
+        {{- if .Values.validatingWebhookSidecar.enabled }}
+        - name: kms-vault-validating-webhook
+          image: "patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}"
+          command:
+          - kms-vault-validating-webhook
+          - -tls-cert-file
+          - /tls/tls.crt
+          - -tls-key-file
+          - /tls/tls.key
+          ports:
+          - name: https
+            containerPort: 4443
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.accessKeyId.secretName }}
+                  key: {{ .Values.aws.accessKeyId.secretKey }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.secretAccessKey.secretName }}
+                  key: {{ .Values.aws.secretAccessKey.secretKey }}
+            - name: AWS_REGION
+              value: {{ .Values.aws.region }}
+        {{- end }}
+      {{- if .Values.validatingWebhookSidecar.enabled }}
+      volumes:
+      - name: tls
+        secret:
+          {{- if .Values.validatingWebhookSidecar.certManager.injectSecret }}
+          secretName: kms-vault-validating-webhook
+          {{- else }}
+          secretName: {{ .Values.validatingWebhookSidecar.tlsSecretName }}
+          {{- end }}
+      {{- end }}

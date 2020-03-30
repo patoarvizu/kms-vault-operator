@@ -167,13 +167,13 @@ func decryptSecrets(secret *k8sv1alpha1.KMSVaultSecret) (map[string]interface{},
 		decoded, err := base64.StdEncoding.DecodeString(s.EncryptedSecret)
 		if err != nil {
 			logger.Info("Error decoding secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
-			rec.Event(secret, corev1.EventTypeNormal, "DecodingError", fmt.Sprintf("Error decoding key %s", s.Key))
+			rec.Event(secret, corev1.EventTypeWarning, "DecodingError", fmt.Sprintf("Error decoding key %s", s.Key))
 			continue
 		}
 		result, err := svc.Decrypt(&kms.DecryptInput{CiphertextBlob: decoded, EncryptionContext: getApplicableContext(s.SecretContext, secret.Spec.SecretContext)})
 		if err != nil {
 			logger.Info("Error decrypting secret, skipping", "secretKey", s.Key, "encodedString", s.EncryptedSecret)
-			rec.Event(secret, corev1.EventTypeNormal, "DecryptingError", fmt.Sprintf("Error decrypting key %s", s.Key))
+			rec.Event(secret, corev1.EventTypeWarning, "DecryptingError", fmt.Sprintf("Error decrypting key %s", s.Key))
 			continue
 		}
 		decryptedSecretData[s.Key] = string(result.Plaintext)

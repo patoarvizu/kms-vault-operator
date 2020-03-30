@@ -66,6 +66,12 @@ jobs:
               sleep 3
               kubectl get pods -l "name=vault-operator"
             done
+            kubectl apply -f test/manifests/cert-manager/cert-manager.yaml --validate=false
+            while [ $(kubectl get apiservices v1beta1.webhook.cert-manager.io -o json | jq -r '[.status.conditions[] | select (.type == "Available" and .status == "True")] | length') != "1" ]; do
+              sleep 3
+              echo "cert-manager APIService not ready yet"
+            done
+            kubectl apply -f test/manifests/cert-manager/cluster-issuer.yaml
             kubectl apply -f test/manifests/vault/vault-cluster-v1.yaml
             while [ "$(kubectl get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 3
@@ -79,6 +85,8 @@ jobs:
               kubectl get pods -l "app=vault" -l "kv_version=v2"
             done
             operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V2'
+            kubectl apply -f test/manifests/webhook/webhook.yaml
+            operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true

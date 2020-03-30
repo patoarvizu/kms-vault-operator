@@ -21,3 +21,17 @@ authentication:
   k8s: null
   token: null
   userpass: null
+
+validatingWebhookSidecar:
+  enabled: false
+  failurePolicy: Fail
+  certManager:
+    injectSecret: false
+    issuerRef:
+      name: selfsigning-issuer
+      kind: ClusterIssuer
+  tlsSecretName: kms-vault-validating-webhook
+  caBundle: Cg==
+  namespaceSelectorExpressions:
+  - key: kms-vault-operator
+    operator: DoesNotExist
