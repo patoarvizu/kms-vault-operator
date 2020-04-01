@@ -57,6 +57,8 @@ spec:
           ports:
           - name: https
             containerPort: 4443
+          - name: metrics
+            containerPort: 8081
           volumeMounts:
             - name: tls
               mountPath: /tls
