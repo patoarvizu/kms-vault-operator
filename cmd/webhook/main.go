@@ -15,6 +15,10 @@ import (
 	"github.com/slok/kubewebhook/pkg/log"
 	validatingwh "github.com/slok/kubewebhook/pkg/webhook/validating"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/slok/kubewebhook/pkg/observability/metrics"
 )
 
 type webhookCfg struct {
@@ -115,15 +119,28 @@ func main() {
 		Name: "kms-vault-secret-validator",
 		Obj:  &kmsvaultv1alpha1.KMSVaultSecret{},
 	}
-
-	wh, err := validatingwh.NewWebhook(vhc, v, nil, nil, logger)
+	reg := prometheus.NewRegistry()
+	metricsRec := metrics.NewPrometheus(reg)
+	wh, err := validatingwh.NewWebhook(vhc, v, nil, metricsRec, logger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error creating webhook: %s", err)
 		os.Exit(1)
 	}
-	err = http.ListenAndServeTLS(cfg.addr, cfg.certFile, cfg.keyFile, whhttp.MustHandlerFor(wh))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error serving webhook: %s", err)
+	webhookError := make(chan error)
+	go func() {
+		webhookError <- http.ListenAndServeTLS(cfg.addr, cfg.certFile, cfg.keyFile, whhttp.MustHandlerFor(wh))
+	}()
+	metricsError := make(chan error)
+	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+	go func() {
+		metricsError <- http.ListenAndServe(cfg.metricsAddr, promHandler)
+	}()
+	if <-webhookError != nil {
+		fmt.Fprintf(os.Stderr, "error serving webhook: %s", <-webhookError)
+		os.Exit(1)
+	}
+	if <-metricsError != nil {
+		fmt.Fprintf(os.Stderr, "error serving metrics: %s", <-metricsError)
 		os.Exit(1)
 	}
 }
