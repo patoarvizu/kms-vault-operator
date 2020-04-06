@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Run all tests
           command: |
-            k3d create --publish 8200:8200 --image rancher/k3s:v0.8.0 -t=0
+            k3d create --publish 8200:30028 --image rancher/k3s:v1.0.0 -t=0
             export KUBECONFIG="$(k3d get-kubeconfig)"
             k3d import-images patoarvizu/kms-vault-operator:latest
             kubectl apply -f test/manifests/vault/vault-external-service.yaml
@@ -66,7 +66,7 @@ jobs:
               sleep 3
               kubectl get pods -l "name=vault-operator"
             done
-            kubectl apply -f test/manifests/cert-manager/cert-manager.yaml --validate=false
+            kubectl apply -f test/manifests/cert-manager/cert-manager.yaml
             while [ $(kubectl get apiservices v1beta1.webhook.cert-manager.io -o json | jq -r '[.status.conditions[] | select (.type == "Available" and .status == "True")] | length') != "1" ]; do
               sleep 3
               echo "cert-manager APIService not ready yet"

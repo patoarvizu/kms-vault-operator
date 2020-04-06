@@ -8,8 +8,7 @@ spec:
   - port: 8200
     protocol: TCP
     targetPort: 8200
+    nodePort: 30028
   selector:
     app.kubernetes.io/name: vault
-  type: LoadBalancer
-  externalIPs:
-  - 127.0.0.1
+  type: NodePort
