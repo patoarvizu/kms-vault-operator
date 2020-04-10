@@ -46,7 +46,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 	}
 	framework.Global.Client.Create(context.TODO(), awsSecret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
-	err = e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, testNamespace, "kms-vault-operator", 1, time.Second*5, time.Second*60)
+	err = e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "vault", "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +208,7 @@ func validateSecretDoesntExist(secret *operator.KMSVaultSecret, key string, t *t
 }
 
 func authenticatedVaultClient() (*vaultapi.Client, error) {
-	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
+	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("vault").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
