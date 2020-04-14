@@ -70,15 +70,15 @@ jobs:
               sleep 1
             done
             kubectl apply -f test/manifests/global/operator.yaml
-            operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
+            operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/first_set/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/first_set/vault/vault-cluster-v2.yaml
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
-            operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V2'
+            operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V2'
             kubectl apply -f test/manifests/webhook/webhook.yaml
-            operator-sdk test local ./test/e2e/ --namespace "default" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
+            operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true
