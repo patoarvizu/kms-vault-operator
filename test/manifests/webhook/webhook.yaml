@@ -21,7 +21,7 @@ webhooks:
   clientConfig:
     caBundle: Cg==
     service:
-      namespace: default
+      namespace: vault
       name: kms-vault-validating-webhook
   namespaceSelector:
     matchExpressions:

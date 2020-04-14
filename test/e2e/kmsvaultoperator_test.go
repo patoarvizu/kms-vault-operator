@@ -26,10 +26,6 @@ const encryptedSecretWithContext = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG
 const encryptedSecretWithContext2 = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwHe8HLsPbxG8LglQiSoTR/gAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM6xvLMMiqXwEstpLkAgEQgCBYB78eEFNHt1QZgFocfnGIJXg+v8W90y0cSnQCqmC/fg=="
 
 func setup(t *testing.T, ctx *test.TestCtx) {
-	testNamespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Error(err)
-	}
 	awsSecret := &v1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
@@ -37,7 +33,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "aws-secrets",
-			Namespace: testNamespace,
+			Namespace: "vault",
 		},
 		StringData: map[string]string{
 			"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
@@ -46,7 +42,7 @@ func setup(t *testing.T, ctx *test.TestCtx) {
 	}
 	framework.Global.Client.Create(context.TODO(), awsSecret, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
-	err = e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, testNamespace, "kms-vault-operator", 1, time.Second*5, time.Second*60)
+	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "vault", "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +204,7 @@ func validateSecretDoesntExist(secret *operator.KMSVaultSecret, key string, t *t
 }
 
 func authenticatedVaultClient() (*vaultapi.Client, error) {
-	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("default").Get("vault-unseal-keys", metav1.GetOptions{})
+	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("vault").Get("vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}

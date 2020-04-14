@@ -168,7 +168,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kms-vault-operator
-  namespace: default
+  namespace: vault
 spec:
   replicas: 1
   selector:
@@ -190,9 +190,7 @@ spec:
           - --vault-authentication-method=k8s
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -212,7 +210,7 @@ spec:
             - name: AWS_REGION
               value: us-east-1
             - name: VAULT_ADDR
-              value: "https://vault:8200"
+              value: "https://vault.vault:8200"
             - name: VAULT_SKIP_VERIFY
               value: "true"
             - name: VAULT_TOKEN
@@ -259,6 +257,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: kms-vault-validating-webhook
+  namespace: vault
 spec:
   secretName: kms-vault-validating-webhook
   duration: 2160h # 90d
@@ -278,6 +277,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kms-vault-validating-webhook
+  namespace: vault
   labels:
     app: kms-vault-validating-webhook
 spec:
@@ -295,27 +295,30 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kms-vault-operator
+  namespace: vault
 
 ---
 
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kms-vault-operator
 subjects:
 - kind: ServiceAccount
   name: kms-vault-operator
+  namespace: vault
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: kms-vault-operator
   apiGroup: rbac.authorization.k8s.io
 
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: kms-vault-operator
+  namespace: vault
 rules:
 - apiGroups:
   - ""
