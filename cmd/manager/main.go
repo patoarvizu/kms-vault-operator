@@ -117,7 +117,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	addMetrics(ctx, cfg, namespace)
+	addMetrics(ctx, cfg)
 
 	log.Info("Starting the Cmd.")
 
@@ -128,7 +128,7 @@ func main() {
 	}
 }
 
-func addMetrics(ctx context.Context, cfg *rest.Config, namespace string) {
+func addMetrics(ctx context.Context, cfg *rest.Config) {
 	if err := serveCRMetrics(cfg); err != nil {
 		if errors.Is(err, k8sutil.ErrRunLocal) {
 			log.Info("Skipping CR metrics server creation; not running in a cluster.")
@@ -148,7 +148,11 @@ func addMetrics(ctx context.Context, cfg *rest.Config, namespace string) {
 	}
 
 	services := []*v1.Service{service}
-	_, err = metrics.CreateServiceMonitors(cfg, namespace, services)
+	operatorNs, err := k8sutil.GetOperatorNamespace()
+	if err != nil {
+		log.Info("Could not get operator namespace", "error", err.Error())
+	}
+	_, err = metrics.CreateServiceMonitors(cfg, operatorNs, services)
 	if err != nil {
 		log.Info("Could not create ServiceMonitor object", "error", err.Error())
 		if err == metrics.ErrServiceMonitorNotPresent {
