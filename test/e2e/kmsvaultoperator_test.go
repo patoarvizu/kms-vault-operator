@@ -224,9 +224,15 @@ func TestMonitoringObjectsCreated(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	setup(t, ctx)
 	metricsService := &v1.Service{}
-	err := framework.Global.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, metricsService)
+	err := wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
+		err := framework.Global.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, metricsService)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
 	if err != nil {
-		t.Error("Could not get metrics Service")
+		t.Fatal("Could not get metrics Service")
 	}
 	httpMetricsPortFound := false
 	crMetricsPortFound := false
@@ -249,7 +255,13 @@ func TestMonitoringObjectsCreated(t *testing.T) {
 
 	framework.Global.Scheme.AddKnownTypes(monitoringv1.SchemeGroupVersion, &monitoringv1.ServiceMonitor{})
 	serviceMonitor := &monitoringv1.ServiceMonitor{}
-	err = framework.Global.Client.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, serviceMonitor)
+	err = wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
+		err := framework.Global.Client.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, serviceMonitor)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
 	if err != nil {
 		t.Fatal("Could not find metrics ServiceMonitor")
 	}
