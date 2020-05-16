@@ -222,6 +222,7 @@ func authenticatedVaultClient() (*vaultapi.Client, error) {
 
 func TestMonitoringObjectsCreated(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
+	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "vault", "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
 		t.Fatal(err)
