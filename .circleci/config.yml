@@ -60,6 +60,7 @@ jobs:
             k3d create --publish 8200:30028 --image rancher/k3s:v1.0.0 -t=0
             export KUBECONFIG="$(k3d get-kubeconfig)"
             k3d import-images patoarvizu/kms-vault-operator:latest
+            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/prometheus-operator/crds.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-operator.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cert-manager-v0.14.1.yaml
             kubectl rollout status -n cert-manager deployment/cert-manager-webhook -w
@@ -70,6 +71,7 @@ jobs:
               sleep 1
             done
             kubectl apply -f test/manifests/global/operator.yaml
+            operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestMonitoringObjectsCreated'
             operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml

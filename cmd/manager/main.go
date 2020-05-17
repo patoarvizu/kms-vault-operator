@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -16,10 +17,15 @@ import (
 	"github.com/patoarvizu/kms-vault-operator/pkg/controller/kmsvaultsecret"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -28,8 +34,9 @@ import (
 
 // Change below variables to serve metrics on different host or port.
 var (
-	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8383
+	metricsHost               = "0.0.0.0"
+	metricsPort         int32 = 8383
+	operatorMetricsPort int32 = 8686
 )
 var log = logf.Log.WithName("cmd")
 
@@ -110,6 +117,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	addMetrics(ctx, cfg)
+
 	log.Info("Starting the Cmd.")
 
 	// Start the Cmd
@@ -117,4 +126,54 @@ func main() {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)
 	}
+}
+
+func addMetrics(ctx context.Context, cfg *rest.Config) {
+	if err := serveCRMetrics(cfg); err != nil {
+		if errors.Is(err, k8sutil.ErrRunLocal) {
+			log.Info("Skipping CR metrics server creation; not running in a cluster.")
+			return
+		}
+		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
+	}
+
+	servicePorts := []v1.ServicePort{
+		{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+		{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
+	}
+
+	service, err := metrics.CreateMetricsService(ctx, cfg, servicePorts)
+	if err != nil {
+		log.Info("Could not create metrics Service", "error", err.Error())
+	}
+
+	services := []*v1.Service{service}
+	operatorNs, err := k8sutil.GetOperatorNamespace()
+	if err != nil {
+		log.Info("Could not get operator namespace", "error", err.Error())
+	}
+	_, err = metrics.CreateServiceMonitors(cfg, operatorNs, services)
+	if err != nil {
+		log.Info("Could not create ServiceMonitor object", "error", err.Error())
+		if err == metrics.ErrServiceMonitorNotPresent {
+			log.Info("Install prometheus-operator in your cluster to create ServiceMonitor objects", "error", err.Error())
+		}
+	}
+}
+
+func serveCRMetrics(cfg *rest.Config) error {
+	filteredGVK, err := k8sutil.GetGVKsFromAddToScheme(apis.AddToScheme)
+	if err != nil {
+		return err
+	}
+	operatorNs, err := k8sutil.GetOperatorNamespace()
+	if err != nil {
+		return err
+	}
+	ns := []string{operatorNs}
+	err = kubemetrics.GenerateAndServeCRMetrics(cfg, ns, filteredGVK, metricsHost, operatorMetricsPort)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.17.7
+	github.com/coreos/prometheus-operator v0.34.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
 	github.com/hashicorp/vault/api v1.0.4

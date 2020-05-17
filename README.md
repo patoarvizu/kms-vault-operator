@@ -18,6 +18,7 @@
         - [Partial secrets](#partial-secrets)
         - [Empty secrets](#empty-secrets)
         - [Validating webhook](#validating-webhook)
+        - [Monitoring](#monitoring)
     - [For security nerds](#for-security-nerds)
         - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
         - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
@@ -144,6 +145,10 @@ Although rarely an empty string is required as a secret, sometimes it is needed 
 The Docker image contains another binary (`kms-vault-validating-webhook`) that can be used as a server that a `ValidatingWebhookConfiguration` calls to validate either `KMSVaultSecret`s or `PartialKMSVaultSecret`s and prevent them from being picked up by the controller in the first place. Since this binary is separate from the main one, it would need to be deployed either as a sidecar or as a separate `Deployment`, as well as requiring its own `Service`. You can find an example of how to deploy it as a sidecar [here](deploy/operator.yaml).
 
 Keep in mind that a `ValidatingWebhookConfiguration` requires a valid CA bundle to trust the webhook over TLS. While this can be any certificate generated offline, you can also use [`cert-manager`](https://github.com/jetstack/cert-manager/) to make it easy to generate certificates as Kubernetes `Secret`s and mount them on containers (like the webhook), or to inject the corresponding CA bundle in `ValidatingWebhookConfiguration`s.
+
+### Monitoring
+
+If your Kubernetes cluster is running the Prometheus [operator](https://github.com/coreos/prometheus-operator), this operator will automatically create an additional `Service` called `kms-vault-operator-metrics` and a corresponding `ServiceMonitor` of the same name. This monitor will scrape the operator for metrics on two different ports. Port 8383 will post general metrics about the running process, while port 8686 will post metrics about the custom resources managed by the operator. More information can be found on the Operator SDK [website](https://sdk.operatorframework.io/docs/golang/monitoring/prometheus/).
 
 ## For security nerds
 

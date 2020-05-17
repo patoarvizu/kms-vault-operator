@@ -11,6 +11,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
+	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/operator-framework/operator-sdk/pkg/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -19,6 +20,7 @@ import (
 	operator "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	dynclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg=="
@@ -216,6 +218,72 @@ func authenticatedVaultClient() (*vaultapi.Client, error) {
 	vaultClient.Auth()
 
 	return vaultClient, nil
+}
+
+func TestMonitoringObjectsCreated(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	setup(t, ctx)
+	metricsService := &v1.Service{}
+	err := wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
+		err = framework.Global.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, metricsService)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err != nil {
+		t.Fatal("Could not get metrics Service")
+	}
+	httpMetricsPortFound := false
+	crMetricsPortFound := false
+	for _, p := range metricsService.Spec.Ports {
+		if p.Name == "http-metrics" && p.Port == 8383 {
+			httpMetricsPortFound = true
+			continue
+		}
+		if p.Name == "cr-metrics" && p.Port == 8686 {
+			crMetricsPortFound = true
+			continue
+		}
+	}
+	if !httpMetricsPortFound {
+		t.Fatal("Service kms-vault-operator-metrics doesn't have http-metrics port 8383")
+	}
+	if !crMetricsPortFound {
+		t.Fatal("Service kms-vault-operator-metrics doesn't have cr-metrics port 8686")
+	}
+
+	framework.Global.Scheme.AddKnownTypes(monitoringv1.SchemeGroupVersion, &monitoringv1.ServiceMonitor{})
+	serviceMonitor := &monitoringv1.ServiceMonitor{}
+	err = wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
+		err = framework.Global.Client.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, serviceMonitor)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err != nil {
+		t.Fatal("Could not find metrics ServiceMonitor")
+	}
+	httpMetricsEndpointFound := false
+	crMetricsEndpointFound := false
+	for _, e := range serviceMonitor.Spec.Endpoints {
+		if e.Port == "http-metrics" {
+			httpMetricsEndpointFound = true
+			continue
+		}
+		if e.Port == "cr-metrics" {
+			crMetricsEndpointFound = true
+			continue
+		}
+	}
+	if !httpMetricsEndpointFound {
+		t.Error("ServiceMonitor kms-vault-operator-metrics doesn't have endpoint http-metrics")
+	}
+	if !crMetricsEndpointFound {
+		t.Error("ServiceMonitor kms-vault-operator-metrics doesn't have endpoint cr-metrics")
+	}
+	ctx.Cleanup()
 }
 
 func TestKMSVaultSecretV1(t *testing.T) {
