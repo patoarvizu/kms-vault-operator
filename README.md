@@ -13,6 +13,7 @@
             - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
             - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
             - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
+            - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
@@ -90,6 +91,14 @@ Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
 `VAULT_USERNAME` | Y | | The Vault username used to authenticate
 `VAULT_PASSWORD` | Y | | The password corresponding to `VAULT_USERNAME`
+
+#### Vault approle authentication method (`--vault-authentication-method=approle`)
+
+Environment variable | Required? | Default | Description
+---------------------|-----------|---------|------------
+`VAULT_APPROLE_ROLE_ID` | Y | | The AppRole role id used to authenticate
+`VAULT_APPROLE_SECRET_ID` | Y | | The AppRole secret id used to authenticate
+`VAULT_APPROLE_ENDPOINT` | N | `auth/approle/login` | The Vault endpoint to use for this authentication method
 
 ### Deploying the operator
 
