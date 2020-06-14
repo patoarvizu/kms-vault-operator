@@ -14,6 +14,7 @@
             - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
             - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
             - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
+            - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
@@ -89,16 +90,23 @@ Environment variable | Required? | Default | Description
 
 Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
-`VAULT_USERNAME` | Y | | The Vault username used to authenticate
+`VAULT_USERNAME` | Y | | The Vault username to use for authentication
 `VAULT_PASSWORD` | Y | | The password corresponding to `VAULT_USERNAME`
 
 #### Vault approle authentication method (`--vault-authentication-method=approle`)
 
 Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
-`VAULT_APPROLE_ROLE_ID` | Y | | The AppRole role id used to authenticate
-`VAULT_APPROLE_SECRET_ID` | Y | | The AppRole secret id used to authenticate
+`VAULT_APPROLE_ROLE_ID` | Y | | The AppRole role id to use for authentication
+`VAULT_APPROLE_SECRET_ID` | Y | | The AppRole secret id to use for authentication
 `VAULT_APPROLE_ENDPOINT` | N | `auth/approle/login` | The Vault endpoint to use for this authentication method
+
+#### Vault github authentication method (`--vault-authentication-method=github`)
+
+Environment variable | Required? | Default | Description
+---------------------|-----------|---------|------------
+`VAULT_GITHUB_TOKEN` | Y | | The GitHub token to use for authentication
+`VAULT_GITHUB_AUTH_ENDPOINT` | N | `auth/github/login` | The Vault endpoint to use for this authentication method
 
 ### Deploying the operator
 
