@@ -43,6 +43,7 @@ const (
 	K8sAuthenticationMethod      string = "k8s"
 	TokenAuthenticationMethod    string = "token"
 	UserpassAuthenticationMethod string = "userpass"
+	AppRoleAuthenticationMethod  string = "approle"
 	KVv1                         string = "v1"
 	KVv2                         string = "v2"
 	DeletedFinalizer             string = "delete.k8s.patoarvizu.dev"
@@ -218,6 +219,8 @@ func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
 		return VaultK8sAuth{}
 	case UserpassAuthenticationMethod:
 		return VaultUserpassAuth{}
+	case AppRoleAuthenticationMethod:
+		return VaultAppRoleAuth{}
 	default:
 		return VaultTokenAuth{}
 	}
