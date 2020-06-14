@@ -76,6 +76,7 @@ jobs:
             operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
+            sleep 3
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
