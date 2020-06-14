@@ -70,6 +70,7 @@ jobs:
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
+            kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
             kubectl apply -f test/manifests/global/operator.yaml
             operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestMonitoringObjectsCreated'
             operator-sdk test local ./test/e2e/ --namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
