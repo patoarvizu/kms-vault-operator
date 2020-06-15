@@ -15,6 +15,7 @@
             - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
             - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
             - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
+            - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
@@ -107,6 +108,21 @@ Environment variable | Required? | Default | Description
 ---------------------|-----------|---------|------------
 `VAULT_GITHUB_TOKEN` | Y | | The GitHub token to use for authentication
 `VAULT_GITHUB_AUTH_ENDPOINT` | N | `auth/github/login` | The Vault endpoint to use for this authentication method
+
+#### Vault iam authentication method (`--vault-authentication-method=iam`)
+
+This authentication method uses [Vault AWS auth method](https://www.vaultproject.io/docs/auth/aws), but specifically the `iam` method only. Support for the `ec2` method might be added in the future.
+
+Since the operator itself is already assumed to be running with some form of access to IAM credentials for decrypting operations (via environment variables, [kube2iam](https://github.com/jtblin/kube2iam), [kiam](https://github.com/uswitch/kiam), etc.), those same credentials can be be used by default to log in to Vault using the `aws` method. However, you can also inject static credentials via the environment variables below if wish to keep decryption credentials separate from login credentials.
+
+Environment variable | Required? | Default | Description
+---------------------|-----------|---------|------------
+`VAULT_IAM_AWS_ACCESS_KEY_ID` | N | No default, but if not specified, a dynamic access key id will be retrieved at runtime using the standard AWS credentials provider chain, assuming one is available. | A static value to use as the access key ID for Vault login purposes.
+`VAULT_IAM_AWS_SECRET_ACCESS_KEY` | N | No default, but if not specified, a dynamic secret access key will be retrieved at runtime using the standard AWS credentials provider chain, assuming one is available. | A static value to use as the secret access key for Vault login purposes.
+`VAULT_IAM_ROLE` | N | No default, but if a role is not specified, Vault will try to guess the role name based on the principal name associated with the credentials (e.g. the IAM user name or role). **This is the name of a Vault role that must be previously configured, not the IAM role you may be authenticating with.**
+`VAULT_IAM_AUTH_ENDPOINT` | N | `auth/aws/login` | The Vault endpoint to use for this authentication method
+
+**NOTE:** the remote Vault instance will also require runtime permissions to perform the IAM validation actions. Those credentials cannot be set by the operator and must be set directly in the target Vault cluster by other means. Refer to the official Vault [documentation](https://www.vaultproject.io/docs/auth/aws#recommended-vault-iam-policy) for the recommended IAM policy.
 
 ### Deploying the operator
 

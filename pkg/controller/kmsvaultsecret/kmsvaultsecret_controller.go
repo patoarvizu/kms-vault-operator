@@ -45,6 +45,7 @@ const (
 	UserpassAuthenticationMethod string = "userpass"
 	AppRoleAuthenticationMethod  string = "approle"
 	GitHubAuthenticationMethod   string = "github"
+	AWSIAMAuthenticationMethod   string = "iam"
 	KVv1                         string = "v1"
 	KVv2                         string = "v2"
 	DeletedFinalizer             string = "delete.k8s.patoarvizu.dev"
@@ -224,6 +225,8 @@ func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
 		return VaultAppRoleAuth{}
 	case GitHubAuthenticationMethod:
 		return VaultGitHubAuth{}
+	case AWSIAMAuthenticationMethod:
+		return VaultIAMAuth{}
 	default:
 		return VaultTokenAuth{}
 	}
