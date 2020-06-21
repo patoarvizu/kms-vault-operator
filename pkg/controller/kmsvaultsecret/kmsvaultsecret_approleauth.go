@@ -3,8 +3,6 @@ package kmsvaultsecret
 import (
 	"errors"
 	"os"
-
-	vaultapi "github.com/hashicorp/vault/api"
 )
 
 const (
@@ -13,18 +11,14 @@ const (
 
 type VaultAppRoleAuth struct{}
 
-func (k8s VaultAppRoleAuth) login(vaultConfig *vaultapi.Config) (string, error) {
+func (auth VaultAppRoleAuth) login() error {
 	roleId, ok := os.LookupEnv("VAULT_APPROLE_ROLE_ID")
 	if !ok {
-		return "", errors.New("Environment variable VAULT_APPROLE_ROLE_ID not set")
+		return errors.New("Environment variable VAULT_APPROLE_ROLE_ID not set")
 	}
 	secretId, ok := os.LookupEnv("VAULT_APPROLE_SECRET_ID")
 	if !ok {
-		return "", errors.New("Environment variable VAULT_APPROLE_SECRET_ID not set")
-	}
-	vaultClient, err := vaultapi.NewClient(vaultConfig)
-	if err != nil {
-		return "", err
+		return errors.New("Environment variable VAULT_APPROLE_SECRET_ID not set")
 	}
 	data := map[string]interface{}{
 		"role_id":   roleId,
@@ -36,7 +30,8 @@ func (k8s VaultAppRoleAuth) login(vaultConfig *vaultapi.Config) (string, error) 
 	}
 	secretAuth, err := vaultClient.Logical().Write(appRoleEndpoint, data)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return secretAuth.Auth.ClientToken, nil
+	vaultClient.SetToken(secretAuth.Auth.ClientToken)
+	return nil
 }

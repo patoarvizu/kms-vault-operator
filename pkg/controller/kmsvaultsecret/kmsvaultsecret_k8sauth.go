@@ -3,13 +3,11 @@ package kmsvaultsecret
 import (
 	"io/ioutil"
 	"os"
-
-	vaultapi "github.com/hashicorp/vault/api"
 )
 
 type VaultK8sAuth struct{}
 
-func (k8s VaultK8sAuth) login(vaultConfig *vaultapi.Config) (string, error) {
+func (auth VaultK8sAuth) login() error {
 	var vaultK8sRole string
 	vaultK8sRole, roleSet := os.LookupEnv("VAULT_K8S_ROLE")
 	if !roleSet {
@@ -20,13 +18,9 @@ func (k8s VaultK8sAuth) login(vaultConfig *vaultapi.Config) (string, error) {
 	if !endpointSet {
 		vaultK8sLoginEndpoint = "auth/kubernetes/login"
 	}
-	vaultClient, err := vaultapi.NewClient(vaultConfig)
-	if err != nil {
-		return "", err
-	}
 	vaultToken, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	if err != nil {
-		return "", err
+		return err
 	}
 	data := map[string]interface{}{
 		"jwt":  string(vaultToken),
@@ -34,7 +28,8 @@ func (k8s VaultK8sAuth) login(vaultConfig *vaultapi.Config) (string, error) {
 	}
 	secretAuth, err := vaultClient.Logical().Write(vaultK8sLoginEndpoint, data)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return secretAuth.Auth.ClientToken, nil
+	vaultClient.SetToken(secretAuth.Auth.ClientToken)
+	return nil
 }

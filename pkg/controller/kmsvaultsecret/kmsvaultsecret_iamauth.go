@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	vaultapi "github.com/hashicorp/vault/api"
 	awsauth "github.com/hashicorp/vault/builtin/credential/aws"
 )
 
@@ -14,7 +13,7 @@ const (
 
 type VaultIAMAuth struct{}
 
-func (k8s VaultIAMAuth) login(vaultConfig *vaultapi.Config) (string, error) {
+func (auth VaultIAMAuth) login() error {
 	logger := log.WithValues("Auth", "IAM")
 	authIAMAWSAccessKeyId, ok := os.LookupEnv("VAULT_IAM_AWS_ACCESS_KEY_ID")
 	if !ok {
@@ -32,28 +31,25 @@ func (k8s VaultIAMAuth) login(vaultConfig *vaultapi.Config) (string, error) {
 	if !ok {
 		iamAuthEndpoint = iamAuthDefaultEndpoint
 	}
-	vaultClient, err := vaultapi.NewClient(vaultConfig)
-	if err != nil {
-		return "", err
-	}
 	credentials, err := awsauth.RetrieveCreds(authIAMAWSAccessKeyId, authIAMAWSSecretAccessKey, "")
 	if err != nil {
-		return "", err
+		return err
 	}
 	// TODO: Support passing header value
 	loginData, err := awsauth.GenerateLoginData(credentials, "", "")
 	if err != nil {
-		return "", err
+		return err
 	}
 	if loginData == nil {
-		return "", errors.New("Couldn't generate IAM login data")
+		return errors.New("Couldn't generate IAM login data")
 	}
 	loginData["role"] = authIAMRole
 	logger.Info("Login data", "loginData", loginData)
 	secretAuth, err := vaultClient.Logical().Write(iamAuthEndpoint, loginData)
 	logger.Info("secret auth", "secretAuth", secretAuth)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return secretAuth.Auth.ClientToken, nil
+	vaultClient.SetToken(secretAuth.Auth.ClientToken)
+	return nil
 }
