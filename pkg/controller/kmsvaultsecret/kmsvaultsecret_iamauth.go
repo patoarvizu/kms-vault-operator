@@ -44,9 +44,7 @@ func (auth VaultIAMAuth) login() error {
 		return errors.New("Couldn't generate IAM login data")
 	}
 	loginData["role"] = authIAMRole
-	logger.Info("Login data", "loginData", loginData)
 	secretAuth, err := vaultClient.Logical().Write(iamAuthEndpoint, loginData)
-	logger.Info("secret auth", "secretAuth", secretAuth)
 	if err != nil {
 		return err
 	}
