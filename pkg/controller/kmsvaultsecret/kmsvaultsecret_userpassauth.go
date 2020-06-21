@@ -2,6 +2,7 @@ package kmsvaultsecret
 
 import (
 	"errors"
+	"fmt"
 	"os"
 )
 
@@ -21,10 +22,9 @@ func (auth VaultUserpassAuth) login() error {
 		return errors.New("Environment variable VAULT_PASSWORD not set")
 	}
 	data := map[string]interface{}{
-		"username": vaultUsername,
 		"password": vaultPassword,
 	}
-	secretAuth, err := vaultClient.Logical().Write(userpassLoginEndpoint, data)
+	secretAuth, err := vaultClient.Logical().Write(fmt.Sprintf("%s/%s", userpassLoginEndpoint, vaultUsername), data)
 	if err != nil {
 		return err
 	}
