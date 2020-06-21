@@ -213,11 +213,6 @@ spec:
               value: "https://vault.vault:8200"
             - name: VAULT_SKIP_VERIFY
               value: "true"
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: vault-root
         - name: kms-vault-validating-webhook
           image: patoarvizu/kms-vault-operator:latest
           imagePullPolicy: IfNotPresent
