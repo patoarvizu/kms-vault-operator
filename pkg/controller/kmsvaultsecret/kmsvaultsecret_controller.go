@@ -31,7 +31,27 @@ import (
 )
 
 type VaultAuthMethod interface {
-	login(*vaultapi.Config) (string, error)
+	login() error
+}
+
+func renewToken(m VaultAuthMethod) error {
+	tokenLookup, err := vaultClient.Auth().Token().LookupSelf()
+	if err == nil {
+		expiration := tokenLookup.Data["expire_time"]
+		t, err := time.Parse(time.RFC3339, expiration.(string))
+		if err == nil {
+			now := time.Now()
+			if t.After(now) {
+				return nil
+			}
+			renewable, _ := tokenLookup.TokenIsRenewable()
+			if renewable {
+				vaultClient.Auth().Token().RenewSelf(0)
+				return nil
+			}
+		}
+	}
+	return m.login()
 }
 
 type KVWriter interface {
@@ -54,6 +74,8 @@ const (
 var log = logf.Log.WithName("controller_kmsvaultsecret")
 var rec record.EventRecorder
 var reqLogger logr.Logger
+var vaultClient *vaultapi.Client
+var vaultAuthMethod VaultAuthMethod
 
 func Add(mgr manager.Manager) error {
 	rec = mgr.GetEventRecorderFor("kms-vault-controller")
@@ -71,6 +93,17 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
+	vaultClient, err = vaultapi.NewClient(vaultapi.DefaultConfig())
+	if err != nil {
+		return err
+	}
+
+	vaultAuthMethod = vaultAuthentication(VaultAuthenticationMethod)
+	err = vaultAuthMethod.login()
 	if err != nil {
 		return err
 	}
@@ -108,7 +141,7 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		instance.Spec.Secrets = append(instance.Spec.Secrets, partialSecretInstance.Spec.Secrets...)
 	}
 
-	vaultClient, err := getAuthenticatedVaultClient(VaultAuthenticationMethod)
+	err = renewToken(vaultAuthMethod)
 	if err != nil {
 		reqLogger.Error(err, "Error getting authenticated Vault client")
 		return reconcile.Result{RequeueAfter: time.Second * 15}, err
@@ -198,21 +231,6 @@ func convertContextMap(context map[string]string) map[string]*string {
 		m[k] = &v
 	}
 	return m
-}
-
-func getAuthenticatedVaultClient(vaultAuthenticationMethod string) (*vaultapi.Client, error) {
-	vaultConfig := vaultapi.DefaultConfig()
-	vaultClient, err := vaultapi.NewClient(vaultConfig)
-	if err != nil {
-		return nil, err
-	}
-	loginToken, err := vaultAuthentication(vaultAuthenticationMethod).login(vaultConfig)
-	if err != nil {
-		return nil, err
-	}
-	vaultClient.SetToken(loginToken)
-	vaultClient.Auth()
-	return vaultClient, nil
 }
 
 func vaultAuthentication(vaultAuthenticationMethod string) VaultAuthMethod {
