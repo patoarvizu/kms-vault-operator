@@ -21,6 +21,7 @@
         - [Partial secrets](#partial-secrets)
         - [Empty secrets](#empty-secrets)
         - [Validating webhook](#validating-webhook)
+            - [Auto-reloading certificate](#auto-reloading-certificate)
         - [Monitoring](#monitoring)
     - [For security nerds](#for-security-nerds)
         - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
@@ -178,6 +179,12 @@ Although rarely an empty string is required as a secret, sometimes it is needed 
 The Docker image contains another binary (`kms-vault-validating-webhook`) that can be used as a server that a `ValidatingWebhookConfiguration` calls to validate either `KMSVaultSecret`s or `PartialKMSVaultSecret`s and prevent them from being picked up by the controller in the first place. Since this binary is separate from the main one, it would need to be deployed either as a sidecar or as a separate `Deployment`, as well as requiring its own `Service`. You can find an example of how to deploy it as a sidecar [here](deploy/operator.yaml).
 
 Keep in mind that a `ValidatingWebhookConfiguration` requires a valid CA bundle to trust the webhook over TLS. While this can be any certificate generated offline, you can also use [`cert-manager`](https://github.com/jetstack/cert-manager/) to make it easy to generate certificates as Kubernetes `Secret`s and mount them on containers (like the webhook), or to inject the corresponding CA bundle in `ValidatingWebhookConfiguration`s.
+
+#### Auto-reloading certificate
+
+The webhook performs a hot reload if the underlying TLS certificate (indicated by the `-tls-cert-file` flag) on disk is modified. This is helpful when using automatic certificate provisioners like cert-manager that will do automatic rotation of the certificates but can't control the lifecycle of the workloads using the certificate.
+
+The way this is achieved is by initially loading the certificate and keeping it in a local cache, then using the [radovskyb/watcher](https://github.com/radovskyb/watcher) library to watch for changes on the file and updating the cached version if the file changes.
 
 ### Monitoring
 
