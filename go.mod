@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.5-0.20200317185738-82f498082f02
 	github.com/operator-framework/operator-sdk v0.15.1
 	github.com/prometheus/client_golang v1.4.0
+	github.com/radovskyb/watcher v1.0.7
 	github.com/slok/kubewebhook v0.9.0
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.18.0

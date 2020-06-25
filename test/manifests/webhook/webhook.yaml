@@ -1,9 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kms-vault-validating-webhook
+  namespace: vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: kms-vault-validating-webhook
+  template:
+    metadata:
+      labels:
+        name: kms-vault-validating-webhook
+    spec:
+      containers:
+        - name: kms-vault-validating-webhook
+          image: patoarvizu/kms-vault-operator:latest
+          imagePullPolicy: IfNotPresent
+          command:
+          - kms-vault-validating-webhook
+          - -tls-cert-file
+          - /tls/tls.crt
+          - -tls-key-file
+          - /tls/tls.key
+          ports:
+          - name: https
+            containerPort: 4443
+          volumeMounts:
+            - name: tls
+              mountPath: /tls
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_REGION
+              value: us-east-1
+      volumes:
+      - name: tls
+        secret:
+          secretName: kms-vault-validating-webhook
+
+---
+
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: kms-vault-validating-webhook
+  namespace: vault
+spec:
+  secretName: kms-vault-validating-webhook
+  duration: 10m
+  renewBefore: 2m
+  commonName: kms-vault-validating-webhook
+  dnsNames:
+  - kms-vault-validating-webhook
+  - kms-vault-validating-webhook.vault
+  - kms-vault-validating-webhook.vault.svc
+  issuerRef:
+    name: selfsigning-issuer
+    kind: ClusterIssuer
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kms-vault-validating-webhook
+  namespace: vault
+  labels:
+    app: kms-vault-validating-webhook
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: https
+  selector:
+    name: kms-vault-validating-webhook
+
+---
+
 kind: ValidatingWebhookConfiguration
 apiVersion: admissionregistration.k8s.io/v1beta1
 metadata:
   name: kms-vault-validating-webhook
   annotations:
-    cert-manager.io/inject-ca-from: default/kms-vault-validating-webhook
+    cert-manager.io/inject-ca-from: vault/kms-vault-validating-webhook
 webhooks:
 - name: kms-vault-validating-webhook.patoarvizu.dev
   rules:
