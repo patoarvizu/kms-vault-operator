@@ -56,6 +56,7 @@ func main() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
 	pflag.StringVar(&kmsvaultsecret.VaultAuthenticationMethod, "vault-authentication-method", "token", "Method to be used for the controller to authenticate with Vault")
+	pflag.IntVar(&kmsvaultsecret.SyncPeriodSeconds, "sync-period-seconds", 120, "Amount of time in seconds to wait between before syncing the secret to Vault")
 
 	pflag.Parse()
 

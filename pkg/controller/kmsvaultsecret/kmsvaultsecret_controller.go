@@ -170,7 +170,7 @@ func (r *ReconcileKMSVaultSecret) Reconcile(request reconcile.Request) (reconcil
 		rec.Event(instance, corev1.EventTypeNormal, "SecretCreated", fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
 		r.client.Status().Update(context.TODO(), instance)
 	}
-	return reconcile.Result{RequeueAfter: time.Minute * 2}, nil
+	return reconcile.Result{RequeueAfter: time.Second * time.Duration(SyncPeriodSeconds)}, nil
 }
 
 func removeFinalizer(allFinalizers []string, finalizer string) []string {
