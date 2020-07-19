@@ -6,7 +6,7 @@ WORKDIR /go/src/github.com/patoarvizu/kms-vault-operator/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /kms-vault-validating-webhook /go/src/github.com/patoarvizu/kms-vault-operator/cmd/webhook/main.go
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.1
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2
 
 ARG GIT_COMMIT="unspecified"
 LABEL GIT_COMMIT=$GIT_COMMIT

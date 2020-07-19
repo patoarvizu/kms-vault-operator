@@ -16,6 +16,7 @@
             - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
             - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
             - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
+        - [Command-line flags](#command-line-flags)
         - [Deploying the operator](#deploying-the-operator)
         - [Creating a secret](#creating-a-secret)
         - [Partial secrets](#partial-secrets)
@@ -124,6 +125,13 @@ Environment variable | Required? | Default | Description
 `VAULT_IAM_AUTH_ENDPOINT` | N | `auth/aws/login` | The Vault endpoint to use for this authentication method
 
 **NOTE:** the remote Vault instance will also require runtime permissions to perform the IAM validation actions. Those credentials cannot be set by the operator and must be set directly in the target Vault cluster by other means. Refer to the official Vault [documentation](https://www.vaultproject.io/docs/auth/aws#recommended-vault-iam-policy) for the recommended IAM policy.
+
+### Command-line flags
+
+Flag | Default | Description
+-----|---------|------------
+`--vault-authentication-method` | `token` | Method to be used for the controller to authenticate with Vault.
+`--sync-period-seconds` | 120 | Amount of time in seconds to wait between before syncing the secret to Vault
 
 ### Deploying the operator
 
