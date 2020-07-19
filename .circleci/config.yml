@@ -49,7 +49,7 @@ jobs:
       - run:
           name: Install k3d
           command: |
-            wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v1.6.0 bash
+            wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v3.0.0 bash
       - save_cache:
           key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
           paths:
@@ -57,9 +57,9 @@ jobs:
       - run:
           name: Run all tests
           command: |
-            k3d create --publish 8200:30028 --image rancher/k3s:v1.0.0 -t=0
-            export KUBECONFIG="$(k3d get-kubeconfig)"
-            k3d import-images patoarvizu/kms-vault-operator:latest
+            export KUBECONFIG=~/.k3d/k3s-default-config
+            k3d cluster create --image rancher/k3s:v1.0.0 --port 8200:30028@server[0] --wait
+            k3d image import patoarvizu/kms-vault-operator:latest
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/prometheus-operator/crds.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-operator.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cert-manager-v0.14.1.yaml
