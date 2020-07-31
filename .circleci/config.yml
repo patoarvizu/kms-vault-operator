@@ -7,7 +7,7 @@ jobs:
   build:
     machine:
         enabled: true
-        image: circleci/classic:201808-01
+        image: ubuntu-1604:202007-01
     environment:
       OPERATOR_SDK_VERSION: 0.15.2
       GOPATH: /home/circleci/go
@@ -58,7 +58,7 @@ jobs:
           name: Run all tests
           command: |
             export KUBECONFIG=~/.k3d/k3s-default-config
-            k3d cluster create --image rancher/k3s:v1.0.0 --port 8200:30028@server[0] --wait
+            k3d cluster create --image rancher/k3s:v1.0.0 --port 8200:30028@server[0] --wait --verbose
             k3d image import patoarvizu/kms-vault-operator:latest
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/prometheus-operator/crds.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-operator.yaml
