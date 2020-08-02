@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -12,6 +13,7 @@ import (
 
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
 
+	"github.com/radovskyb/watcher"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -52,6 +54,35 @@ func renewToken(m VaultAuthMethod) error {
 		}
 	}
 	return m.login()
+}
+
+func watchCertificate() {
+	logger := log.WithValues("Function", "WatchCertificate")
+	w := watcher.New()
+	w.SetMaxEvents(1)
+	w.FilterOps(watcher.Write)
+	watchedCACert := os.Getenv("VAULT_CACERT")
+	if len(watchedCACert) > 0 {
+		_ = w.Add(watchedCACert)
+	}
+	watchedCAPath := os.Getenv("VAULT_CAPATH")
+	if len(watchedCAPath) > 0 {
+		_ = w.Add(watchedCAPath)
+	}
+	go func() {
+		for {
+			select {
+			case <-w.Event:
+				logger.Info("Updating CA certificate for client")
+				err := setVaultClient()
+				if err != nil {
+					logger.Error(err, "Error refreshing client")
+					os.Exit(1)
+				}
+			}
+		}
+	}()
+	go w.Start(time.Millisecond * 100)
 }
 
 type KVWriter interface {
@@ -97,10 +128,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	vaultClient, err = vaultapi.NewClient(vaultapi.DefaultConfig())
+	err = setVaultClient()
 	if err != nil {
 		return err
 	}
+	watchCertificate()
 
 	vaultAuthMethod = vaultAuthentication(VaultAuthenticationMethod)
 	err = vaultAuthMethod.login()
@@ -108,6 +140,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	return nil
+}
+
+func setVaultClient() error {
+	c, err := vaultapi.NewClient(vaultapi.DefaultConfig())
+	if err != nil {
+		return err
+	}
+	vaultClient = c
 	return nil
 }
 
