@@ -212,7 +212,19 @@ spec:
             - name: VAULT_ADDR
               value: "https://vault.vault:8200"
             - name: VAULT_SKIP_VERIFY
-              value: "true"
+              value: "false"
+            - name: VAULT_CAPATH
+              value: /opt/vault/certs/ca.crt
+          volumeMounts:
+          - name: vault-tls
+            mountPath: /opt/vault/certs
+            readOnly: true
+      volumes:
+      - name: vault-tls
+        secret:
+          secretName: vault-tls
+          defaultMode: 0644
+          optional: false
 
 ---
 
