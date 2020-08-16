@@ -26,7 +26,7 @@ const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr
 const encryptedSecretWithContext = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwEfRLaPGqGLTXl/5MT6YX7ZAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMoXRvpmXuVp48k9zYAgEQgCBwncIXMiSO08MWoYp5yXRbn1sflcDPXUt6c6GERNhNOA=="
 const encryptedSecretWithContext2 = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwHe8HLsPbxG8LglQiSoTR/gAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM6xvLMMiqXwEstpLkAgEQgCBYB78eEFNHt1QZgFocfnGIJXg+v8W90y0cSnQCqmC/fg=="
 
-func setup(t *testing.T, ctx *test.TestCtx) {
+func setup(t *testing.T, ctx *test.Context) {
 	ctx.InitializeClusterResources(&framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	err := e2eutil.WaitForOperatorDeployment(t, framework.Global.KubeClient, "vault", "kms-vault-operator", 1, time.Second*5, time.Second*60)
 	if err != nil {
@@ -205,7 +205,7 @@ func authenticatedVaultClient() (*vaultapi.Client, error) {
 }
 
 func TestMonitoringObjectsCreated(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	metricsService := &v1.Service{}
 	err := wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
@@ -271,7 +271,7 @@ func TestMonitoringObjectsCreated(t *testing.T) {
 }
 
 func TestKMSVaultSecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -280,7 +280,7 @@ func TestKMSVaultSecretV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -289,7 +289,7 @@ func TestKMSVaultSecretV2(t *testing.T) {
 }
 
 func TestUnencryptedSecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": "UnencryptedSecret"}, false, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretDoesntExist(secret, "Hello", t)
@@ -298,7 +298,7 @@ func TestUnencryptedSecretV1(t *testing.T) {
 }
 
 func TestUnencryptedSecretV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": "UnencryptedSecret"}, false, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretDoesntExist(secret, "Hello", t)
@@ -307,7 +307,7 @@ func TestUnencryptedSecretV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretFinalizersV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{"delete.k8s.patoarvizu.dev"}, []string{}, t, nil)
 	validateSecretExists(secret, "Hello", t)
@@ -317,7 +317,7 @@ func TestKMSVaultSecretFinalizersV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretFinalizersV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{"delete.k8s.patoarvizu.dev"}, []string{}, t, nil)
 	validateSecretExists(secret, "Hello", t)
@@ -327,7 +327,7 @@ func TestKMSVaultSecretFinalizersV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithHighContextV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecretWithContext}, false, map[string]string{"Hello": "World"}, make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -336,7 +336,7 @@ func TestKMSVaultSecretWithHighContextV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithHighContextV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecretWithContext}, false, map[string]string{"Hello": "World"}, make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -345,7 +345,7 @@ func TestKMSVaultSecretWithHighContextV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithLowContextV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecretWithContext}, false, make(map[string]string), map[string]string{"Hello": "World"}, "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -354,7 +354,7 @@ func TestKMSVaultSecretWithLowContextV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithLowContextV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecretWithContext}, false, make(map[string]string), map[string]string{"Hello": "World"}, "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -363,7 +363,7 @@ func TestKMSVaultSecretWithLowContextV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithHighAndLowContextV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := &operator.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
@@ -404,7 +404,7 @@ func TestKMSVaultSecretWithHighAndLowContextV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretWithHighAndLowContextV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := &operator.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
@@ -445,7 +445,7 @@ func TestKMSVaultSecretWithHighAndLowContextV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretSomeFailedKeysV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret, "Failed": "EncryptionError"}, false, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -455,7 +455,7 @@ func TestKMSVaultSecretSomeFailedKeysV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretSomeFailedKeysV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret, "Failed": "EncryptionError"}, false, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "Hello", t)
@@ -465,7 +465,7 @@ func TestKMSVaultSecretSomeFailedKeysV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretPartialSecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	createPartialKMSVaultSecret(map[string]string{"PartialHello": encryptedSecret}, make(map[string]string), make(map[string]string), t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{"partial-secret"}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
@@ -476,7 +476,7 @@ func TestKMSVaultSecretPartialSecretV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretPartialSecretV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	createPartialKMSVaultSecret(map[string]string{"PartialHello": encryptedSecret}, make(map[string]string), make(map[string]string), t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	secret := createKMSVaultSecret(map[string]string{"Hello": encryptedSecret}, false, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{"partial-secret"}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
@@ -487,7 +487,7 @@ func TestKMSVaultSecretPartialSecretV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": encryptedSecret}, true, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
@@ -496,7 +496,7 @@ func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": encryptedSecret}, true, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
@@ -505,7 +505,7 @@ func TestKMSVaultSecretEmptySecretIgnoreValidEncryptedStringV2(t *testing.T) {
 }
 
 func TestKMSVaultSecretEmptySecretV1(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": ""}, true, make(map[string]string), make(map[string]string), "secret/test-secret", "v1", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
@@ -514,7 +514,7 @@ func TestKMSVaultSecretEmptySecretV1(t *testing.T) {
 }
 
 func TestKMSVaultSecretEmptySecretV2(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secret := createKMSVaultSecret(map[string]string{"EmptyHello": ""}, true, make(map[string]string), make(map[string]string), "secret/data/test-secret", "v2", []string{}, []string{}, t, &framework.CleanupOptions{TestContext: ctx, Timeout: time.Second * 60, RetryInterval: time.Second * 1})
 	validateSecretExists(secret, "EmptyHello", t)
@@ -523,7 +523,7 @@ func TestKMSVaultSecretEmptySecretV2(t *testing.T) {
 }
 
 func TestWebhookRejectsBadEncoding(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secretsMap := convertToSecretMap(map[string]string{"Secret": "BadEncoding"}, make(map[string]string), false)
 	secret := &operator.KMSVaultSecret{
@@ -552,7 +552,7 @@ func TestWebhookRejectsBadEncoding(t *testing.T) {
 }
 
 func TestWebhookRejectsBadEncryption(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
+	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secretsMap := convertToSecretMap(map[string]string{"Secret": encryptedSecret}, make(map[string]string), false)
 	secret := &operator.KMSVaultSecret{

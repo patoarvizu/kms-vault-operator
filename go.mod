@@ -9,7 +9,7 @@ require (
 	github.com/go-openapi/spec v0.19.4
 	github.com/hashicorp/vault v1.4.2
 	github.com/hashicorp/vault/api v1.0.5-0.20200317185738-82f498082f02
-	github.com/operator-framework/operator-sdk v0.15.1
+	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.0
 	github.com/radovskyb/watcher v1.0.7
 	github.com/slok/kubewebhook v0.9.0
