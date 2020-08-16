@@ -3,22 +3,22 @@ module github.com/patoarvizu/kms-vault-operator
 go 1.13
 
 require (
-	github.com/aws/aws-sdk-go v1.25.41
-	github.com/coreos/prometheus-operator v0.34.0
+	github.com/aws/aws-sdk-go v1.25.48
+	github.com/coreos/prometheus-operator v0.38.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
 	github.com/hashicorp/vault v1.4.2
 	github.com/hashicorp/vault/api v1.0.5-0.20200317185738-82f498082f02
-	github.com/operator-framework/operator-sdk v0.16.0
-	github.com/prometheus/client_golang v1.4.0
+	github.com/operator-framework/operator-sdk v0.17.2
+	github.com/prometheus/client_golang v1.5.1
 	github.com/radovskyb/watcher v1.0.7
 	github.com/slok/kubewebhook v0.9.0
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.18.0
 	k8s.io/apimachinery v0.18.1-beta.0
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-	sigs.k8s.io/controller-runtime v0.4.0
+	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
+	sigs.k8s.io/controller-runtime v0.5.2
 )
 
 // Pinned to kubernetes-1.16.2
@@ -49,3 +49,5 @@ replace (
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad // Required until https://github.com/operator-framework/operator-lifecycle-manager/pull/1241 is resolved
+
+replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM

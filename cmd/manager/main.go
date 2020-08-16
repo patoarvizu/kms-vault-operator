@@ -8,10 +8,6 @@ import (
 	"os"
 	"runtime"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-
 	"github.com/patoarvizu/kms-vault-operator/pkg/apis"
 	"github.com/patoarvizu/kms-vault-operator/pkg/controller"
 	"github.com/patoarvizu/kms-vault-operator/pkg/controller/kmsvaultsecret"
