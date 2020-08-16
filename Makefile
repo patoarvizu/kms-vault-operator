@@ -27,7 +27,7 @@ endif
 all: manager
 
 # Run tests
-test: generate fmt vet manifests
+test: generate fmt vet manifests testbin
 	go test github.com/patoarvizu/kms-vault-operator/controllers -coverprofile cover.out
 
 # Build manager binary
