@@ -9,7 +9,7 @@ jobs:
         enabled: true
         image: ubuntu-1604:202007-01
     environment:
-      OPERATOR_SDK_VERSION: 0.18.2
+      OPERATOR_SDK_VERSION: 0.19.1
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
@@ -36,7 +36,7 @@ jobs:
           name: Build image
           command: |
             go mod vendor
-            operator-sdk build patoarvizu/kms-vault-operator:latest
+            make docker-build
           no_output_timeout: 30m
       - run:
           name: Install kubectl
@@ -70,19 +70,20 @@ jobs:
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
+            # kubectl apply -f test/manifests/global/operator.yaml
+            make install
+            make deploy
             kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
-            kubectl apply -f test/manifests/global/operator.yaml
-            operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestMonitoringObjectsCreated'
-            operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V1'
+            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -parallel=2 -run .*V1
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
             sleep 3
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
-            operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run .*V2'
-            kubectl apply -f test/manifests/webhook/webhook.yaml
-            operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
+            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -parallel=2 -run .*V2
+            # kubectl apply -f test/manifests/webhook/webhook.yaml
+            # operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true
@@ -103,8 +104,9 @@ jobs:
             export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
             notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
             export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
-            OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-            operator-sdk build patoarvizu/kms-vault-operator:$CIRCLE_SHA1 --image-build-args "$OPERATOR_BUILD_ARGS"
+            export OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+            # operator-sdk build patoarvizu/kms-vault-operator:$CIRCLE_SHA1 --image-build-args "$OPERATOR_BUILD_ARGS"
+            make docker-build IMG=patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             export DOCKER_CONTENT_TRUST=1
             VERSION=${CIRCLE_TAG:-latest}
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest

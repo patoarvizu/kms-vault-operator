@@ -1,0 +1,13 @@
+domain: patoarvizu.dev
+layout: go.kubebuilder.io/v2
+repo: github.com/patoarvizu/kms-vault-operator
+resources:
+- group: k8s
+  kind: KMSVaultSecret
+  version: v1alpha1
+- group: k8s
+  kind: PartialKMSVaultSecret
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.operator-sdk.io/v2-alpha: {}

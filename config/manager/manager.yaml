@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: vault
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kms-vault-operator
+  labels:
+    control-plane: controller-manager
+    name: kms-vault-operator
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+        name: kms-vault-operator
+    spec:
+      serviceAccountName: kms-vault-operator
+      containers:
+      - name: kms-vault-operator
+        command:
+        - /manager
+        args:
+        - --enable-leader-election
+        - --vault-authentication-method=k8s
+        image: patoarvizu/kms-vault-operator:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: "kms-vault-operator"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        - name: AWS_REGION
+          value: us-east-1
+        - name: VAULT_ADDR
+          value: "https://vault:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kms-vault-operator

@@ -8,18 +8,13 @@ import (
 	"testing"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
-
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/operator-framework/operator-sdk/pkg/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
-	apis "github.com/patoarvizu/kms-vault-operator/pkg/apis"
-	operator "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
+	v1alpha1 "github.com/patoarvizu/kms-vault-operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	dynclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const encryptedSecret = "AQICAHgKbLYZWOFlPGwA/1foMoxcBOxv7LddQQW9biqG70YNkwF+dKr15L/4Pl/d26uDd7KqAAAAYzBhBgkqhkiG9w0BBwagVDBSAgEAME0GCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0gfMT1P5MBTd/fGAgEQgCANG/RycP+0ZXj2qZORafZO4fGdU7KGFINsrs1JDnx1mg=="
@@ -32,21 +27,21 @@ func setup(t *testing.T, ctx *test.Context) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	kmsVaultSecretList := &operator.KMSVaultSecretList{
+	kmsVaultSecretList := &v1alpha1.KMSVaultSecretList{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
 		},
 	}
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, kmsVaultSecretList)
+	err = framework.AddToFrameworkScheme(v1alpha1.AddToScheme, kmsVaultSecretList)
 	if err != nil {
 		t.Fatalf("Failed to add to scheme: %s", err)
 	}
 }
 
-func createKMSVaultSecret(secrets map[string]string, emptySecret bool, highSecretContext map[string]string, lowSecretContext map[string]string, secretPath string, engineVersion string, finalizers []string, includeSecrets []string, t *testing.T, o *framework.CleanupOptions) *operator.KMSVaultSecret {
+func createKMSVaultSecret(secrets map[string]string, emptySecret bool, highSecretContext map[string]string, lowSecretContext map[string]string, secretPath string, engineVersion string, finalizers []string, includeSecrets []string, t *testing.T, o *framework.CleanupOptions) *v1alpha1.KMSVaultSecret {
 	secretsMap := convertToSecretMap(secrets, lowSecretContext, emptySecret)
-	secret := &operator.KMSVaultSecret{
+	secret := &v1alpha1.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -56,9 +51,9 @@ func createKMSVaultSecret(secrets map[string]string, emptySecret bool, highSecre
 			Namespace:  "default",
 			Finalizers: finalizers,
 		},
-		Spec: operator.KMSVaultSecretSpec{
+		Spec: v1alpha1.KMSVaultSecretSpec{
 			Path: secretPath,
-			KVSettings: operator.KVSettings{
+			KVSettings: v1alpha1.KVSettings{
 				EngineVersion: engineVersion,
 			},
 			Secrets:        secretsMap,
@@ -74,9 +69,9 @@ func createKMSVaultSecret(secrets map[string]string, emptySecret bool, highSecre
 	return secret
 }
 
-func createPartialKMSVaultSecret(secrets map[string]string, highSecretContext map[string]string, lowSecretContext map[string]string, t *testing.T, o *framework.CleanupOptions) *operator.PartialKMSVaultSecret {
+func createPartialKMSVaultSecret(secrets map[string]string, highSecretContext map[string]string, lowSecretContext map[string]string, t *testing.T, o *framework.CleanupOptions) *v1alpha1.PartialKMSVaultSecret {
 	secretsMap := convertToSecretMap(secrets, lowSecretContext, false)
-	partialSecret := &operator.PartialKMSVaultSecret{
+	partialSecret := &v1alpha1.PartialKMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PartialKMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -85,7 +80,7 @@ func createPartialKMSVaultSecret(secrets map[string]string, highSecretContext ma
 			Name:      "partial-secret",
 			Namespace: "default",
 		},
-		Spec: operator.PartialKMSVaultSecretSpec{
+		Spec: v1alpha1.PartialKMSVaultSecretSpec{
 			Secrets:       secretsMap,
 			SecretContext: highSecretContext,
 		},
@@ -97,15 +92,15 @@ func createPartialKMSVaultSecret(secrets map[string]string, highSecretContext ma
 	return partialSecret
 }
 
-func convertToSecretMap(secrets map[string]string, secretContext map[string]string, emptySecret bool) []operator.Secret {
-	s := []operator.Secret{}
+func convertToSecretMap(secrets map[string]string, secretContext map[string]string, emptySecret bool) []v1alpha1.Secret {
+	s := []v1alpha1.Secret{}
 	for k, v := range secrets {
-		s = append(s, operator.Secret{Key: k, EncryptedSecret: v, SecretContext: secretContext, EmptySecret: emptySecret})
+		s = append(s, v1alpha1.Secret{Key: k, EncryptedSecret: v, SecretContext: secretContext, EmptySecret: emptySecret})
 	}
 	return s
 }
 
-func cleanUpVaultSecret(secret *operator.KMSVaultSecret, t *testing.T) {
+func cleanUpVaultSecret(secret *v1alpha1.KMSVaultSecret, t *testing.T) {
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -114,7 +109,7 @@ func cleanUpVaultSecret(secret *operator.KMSVaultSecret, t *testing.T) {
 	_, err = vaultClient.Logical().Delete(deletePath)
 }
 
-func validateSecretExists(secret *operator.KMSVaultSecret, key string, t *testing.T) {
+func validateSecretExists(secret *v1alpha1.KMSVaultSecret, key string, t *testing.T) {
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -158,7 +153,7 @@ func validateSecretExists(secret *operator.KMSVaultSecret, key string, t *testin
 	}
 }
 
-func validateSecretDoesntExist(secret *operator.KMSVaultSecret, key string, t *testing.T) {
+func validateSecretDoesntExist(secret *v1alpha1.KMSVaultSecret, key string, t *testing.T) {
 	vaultClient, err := authenticatedVaultClient()
 	if err != nil {
 		t.Fatalf("Failed to get Vault client: %v", err)
@@ -202,72 +197,6 @@ func authenticatedVaultClient() (*vaultapi.Client, error) {
 	vaultClient.Auth()
 
 	return vaultClient, nil
-}
-
-func TestMonitoringObjectsCreated(t *testing.T) {
-	ctx := framework.NewContext(t)
-	setup(t, ctx)
-	metricsService := &v1.Service{}
-	err := wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
-		err = framework.Global.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, metricsService)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	})
-	if err != nil {
-		t.Fatal("Could not get metrics Service")
-	}
-	httpMetricsPortFound := false
-	crMetricsPortFound := false
-	for _, p := range metricsService.Spec.Ports {
-		if p.Name == "http-metrics" && p.Port == 8383 {
-			httpMetricsPortFound = true
-			continue
-		}
-		if p.Name == "cr-metrics" && p.Port == 8686 {
-			crMetricsPortFound = true
-			continue
-		}
-	}
-	if !httpMetricsPortFound {
-		t.Fatal("Service kms-vault-operator-metrics doesn't have http-metrics port 8383")
-	}
-	if !crMetricsPortFound {
-		t.Fatal("Service kms-vault-operator-metrics doesn't have cr-metrics port 8686")
-	}
-
-	framework.Global.Scheme.AddKnownTypes(monitoringv1.SchemeGroupVersion, &monitoringv1.ServiceMonitor{})
-	serviceMonitor := &monitoringv1.ServiceMonitor{}
-	err = wait.Poll(time.Second*2, time.Second*60, func() (done bool, err error) {
-		err = framework.Global.Client.Client.Get(context.TODO(), dynclient.ObjectKey{Namespace: "vault", Name: "kms-vault-operator-metrics"}, serviceMonitor)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	})
-	if err != nil {
-		t.Fatal("Could not find metrics ServiceMonitor")
-	}
-	httpMetricsEndpointFound := false
-	crMetricsEndpointFound := false
-	for _, e := range serviceMonitor.Spec.Endpoints {
-		if e.Port == "http-metrics" {
-			httpMetricsEndpointFound = true
-			continue
-		}
-		if e.Port == "cr-metrics" {
-			crMetricsEndpointFound = true
-			continue
-		}
-	}
-	if !httpMetricsEndpointFound {
-		t.Error("ServiceMonitor kms-vault-operator-metrics doesn't have endpoint http-metrics")
-	}
-	if !crMetricsEndpointFound {
-		t.Error("ServiceMonitor kms-vault-operator-metrics doesn't have endpoint cr-metrics")
-	}
-	ctx.Cleanup()
 }
 
 func TestKMSVaultSecretV1(t *testing.T) {
@@ -365,7 +294,7 @@ func TestKMSVaultSecretWithLowContextV2(t *testing.T) {
 func TestKMSVaultSecretWithHighAndLowContextV1(t *testing.T) {
 	ctx := framework.NewContext(t)
 	setup(t, ctx)
-	secret := &operator.KMSVaultSecret{
+	secret := &v1alpha1.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -374,12 +303,12 @@ func TestKMSVaultSecretWithHighAndLowContextV1(t *testing.T) {
 			Name:      "test-secret",
 			Namespace: "default",
 		},
-		Spec: operator.KMSVaultSecretSpec{
+		Spec: v1alpha1.KMSVaultSecretSpec{
 			Path: "secret/test-secret",
-			KVSettings: operator.KVSettings{
+			KVSettings: v1alpha1.KVSettings{
 				EngineVersion: "v1",
 			},
-			Secrets: []operator.Secret{
+			Secrets: []v1alpha1.Secret{
 				{
 					Key:             "Hello",
 					EncryptedSecret: encryptedSecretWithContext,
@@ -406,7 +335,7 @@ func TestKMSVaultSecretWithHighAndLowContextV1(t *testing.T) {
 func TestKMSVaultSecretWithHighAndLowContextV2(t *testing.T) {
 	ctx := framework.NewContext(t)
 	setup(t, ctx)
-	secret := &operator.KMSVaultSecret{
+	secret := &v1alpha1.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -415,12 +344,12 @@ func TestKMSVaultSecretWithHighAndLowContextV2(t *testing.T) {
 			Name:      "test-secret",
 			Namespace: "default",
 		},
-		Spec: operator.KMSVaultSecretSpec{
+		Spec: v1alpha1.KMSVaultSecretSpec{
 			Path: "secret/data/test-secret",
-			KVSettings: operator.KVSettings{
+			KVSettings: v1alpha1.KVSettings{
 				EngineVersion: "v2",
 			},
-			Secrets: []operator.Secret{
+			Secrets: []v1alpha1.Secret{
 				{
 					Key:             "Hello",
 					EncryptedSecret: encryptedSecretWithContext,
@@ -526,7 +455,7 @@ func TestWebhookRejectsBadEncoding(t *testing.T) {
 	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secretsMap := convertToSecretMap(map[string]string{"Secret": "BadEncoding"}, make(map[string]string), false)
-	secret := &operator.KMSVaultSecret{
+	secret := &v1alpha1.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -535,9 +464,9 @@ func TestWebhookRejectsBadEncoding(t *testing.T) {
 			Name:      "test-secret",
 			Namespace: "default",
 		},
-		Spec: operator.KMSVaultSecretSpec{
+		Spec: v1alpha1.KMSVaultSecretSpec{
 			Path: "secret/data/test-secret",
-			KVSettings: operator.KVSettings{
+			KVSettings: v1alpha1.KVSettings{
 				EngineVersion: "v1",
 			},
 			Secrets:       secretsMap,
@@ -555,7 +484,7 @@ func TestWebhookRejectsBadEncryption(t *testing.T) {
 	ctx := framework.NewContext(t)
 	setup(t, ctx)
 	secretsMap := convertToSecretMap(map[string]string{"Secret": encryptedSecret}, make(map[string]string), false)
-	secret := &operator.KMSVaultSecret{
+	secret := &v1alpha1.KMSVaultSecret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KMSVaultSecret",
 			APIVersion: "k8s.patoarvizu.dev/v1alpha1",
@@ -564,9 +493,9 @@ func TestWebhookRejectsBadEncryption(t *testing.T) {
 			Name:      "test-secret",
 			Namespace: "default",
 		},
-		Spec: operator.KMSVaultSecretSpec{
+		Spec: v1alpha1.KMSVaultSecretSpec{
 			Path: "secret/data/test-secret",
-			KVSettings: operator.KVSettings{
+			KVSettings: v1alpha1.KVSettings{
 				EngineVersion: "v1",
 			},
 			Secrets:       secretsMap,
