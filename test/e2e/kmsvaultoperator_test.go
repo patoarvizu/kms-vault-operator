@@ -190,7 +190,7 @@ func validateSecretDoesntExist(secret *operator.KMSVaultSecret, key string, t *t
 }
 
 func authenticatedVaultClient() (*vaultapi.Client, error) {
-	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("vault").Get("vault-unseal-keys", metav1.GetOptions{})
+	vaultSecret, err := framework.Global.KubeClient.CoreV1().Secrets("vault").Get(context.TODO(), "vault-unseal-keys", metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
