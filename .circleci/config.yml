@@ -9,7 +9,7 @@ jobs:
         enabled: true
         image: ubuntu-1604:202007-01
     environment:
-      OPERATOR_SDK_VERSION: 0.19.1
+      OPERATOR_SDK_VERSION: 1.0.0
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
