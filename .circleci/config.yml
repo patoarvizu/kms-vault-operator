@@ -33,20 +33,9 @@ jobs:
             curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
             chmod +x ${HOME}/go/bin/operator-sdk
       - run:
-          name: Install notary
-          command: |
-            curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
-            chmod +x notary
-            sudo mv notary /usr/local/bin
-      - run:
           name: Build image
           command: |
-            docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
-            echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
-            export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
-            notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
-            export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
-            export OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+            OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
             make docker-build IMG="patoarvizu/kms-vault-operator:$CIRCLE_SHA1" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
           no_output_timeout: 30m
@@ -102,8 +91,19 @@ jobs:
           severity-threshold: low
           additional-arguments: "--policy-path=.snyk"
       - run:
+          name: Install notary
+          command: |
+            curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
+            chmod +x notary
+            sudo mv notary /usr/local/bin
+      - run:
           name: Push container
           command: |
+            docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
+            echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
+            export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
+            notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
+            export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
             export DOCKER_CONTENT_TRUST=1
             VERSION=${CIRCLE_TAG:-latest}
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
