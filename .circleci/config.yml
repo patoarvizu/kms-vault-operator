@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Build image
           command: |
-            if [ -f /home/circleci/cached-builder.tar ]; do
+            if [ -f /home/circleci/cached-builder.tar ]; then
               docker load --input /home/circleci/cached-builder.tar
             fi
             docker build --target=builder -t patoarvizu/kms-vault-operator:builder-cache .
