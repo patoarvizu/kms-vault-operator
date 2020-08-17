@@ -18,7 +18,7 @@ spec:
           image: patoarvizu/kms-vault-operator:latest
           imagePullPolicy: IfNotPresent
           command:
-          - kms-vault-validating-webhook
+          - /kms-vault-validating-webhook
           - -tls-cert-file
           - /tls/tls.crt
           - -tls-key-file

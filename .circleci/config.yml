@@ -70,20 +70,19 @@ jobs:
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
-            # kubectl apply -f test/manifests/global/operator.yaml
             make install
             make deploy
             kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
-            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -parallel=2 -run .*V1
+            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run .*V1
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
             sleep 3
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
-            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -parallel=2 -run .*V2
-            # kubectl apply -f test/manifests/webhook/webhook.yaml
-            # operator-sdk test local ./test/e2e/ --operator-namespace "vault" --global-manifest ./test/manifests/global/operator.yaml --go-test-flags '-v -run TestWebhook*'
+            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run .*V2
+            kubectl apply -f test/manifests/webhook/webhook.yaml
+            go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run TestWebhook*
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true

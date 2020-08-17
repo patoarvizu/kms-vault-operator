@@ -11,7 +11,9 @@ require (
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
 	github.com/operator-framework/operator-sdk v0.19.1
+	github.com/prometheus/client_golang v1.6.0
 	github.com/radovskyb/watcher v1.0.7
+	github.com/slok/kubewebhook v0.10.0
 	k8s.io/api v0.18.3
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v12.0.0+incompatible
