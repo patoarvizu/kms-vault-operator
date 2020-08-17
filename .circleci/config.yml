@@ -43,7 +43,9 @@ jobs:
             docker save -o /home/circleci/cached-builder.tar patoarvizu/kms-vault-operator:builder-cache
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
             make docker-build IMG="patoarvizu/kms-vault-operator:$CIRCLE_SHA1" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
+            VERSION=${CIRCLE_TAG:-latest}
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
+            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
           no_output_timeout: 30m
       - run:
           name: Install kubectl
@@ -116,8 +118,6 @@ jobs:
             export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
             export DOCKER_CONTENT_TRUST=1
             VERSION=${CIRCLE_TAG:-latest}
-            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
-            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             docker push patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:latest
