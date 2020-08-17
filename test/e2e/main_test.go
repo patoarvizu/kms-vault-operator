@@ -1,11 +1,11 @@
 package e2e
 
-import (
-	"testing"
+// import (
+// 	"testing"
 
-	f "github.com/operator-framework/operator-sdk/pkg/test"
-)
+// 	f "github.com/operator-framework/operator-sdk/pkg/test"
+// )
 
-func TestMain(m *testing.M) {
-	f.MainEntry(m)
-}
+// func TestMain(m *testing.M) {
+// 	f.MainEntry(m)
+// }
