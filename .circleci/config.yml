@@ -19,6 +19,7 @@ jobs:
       - restore_cache:
           keys:
             - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
+            - kms-vault-operator-docker-image-cache-{{ checksum "Dockerfile" }}
       - run:
           name: Install golang
           command: |
@@ -35,6 +36,11 @@ jobs:
       - run:
           name: Build image
           command: |
+            if [ -f /home/circleci/cached-builder.tar ]; do
+              docker load --input /home/circleci/cached-builder.tar
+            fi
+            docker build --target=builder -t patoarvizu/kms-vault-operator:builder-cache .
+            docker save -o /home/circleci/cached-builder.tar patoarvizu/kms-vault-operator:builder-cache
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
             make docker-build IMG="patoarvizu/kms-vault-operator:$CIRCLE_SHA1" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
             docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
@@ -55,6 +61,10 @@ jobs:
           key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
           paths:
             - /home/circleci/go/pkg/mod/cache
+      - save_cache:
+          key: - kms-vault-operator-docker-image-cache-{{ checksum "Dockerfile" }}
+          paths:
+            - /home/circleci/cached-builder.tar
       - run:
           name: Run all tests
           command: |
