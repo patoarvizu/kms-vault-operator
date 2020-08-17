@@ -62,7 +62,7 @@ jobs:
           paths:
             - /home/circleci/go/pkg/mod/cache
       - save_cache:
-          key: - kms-vault-operator-docker-image-cache-{{ checksum "Dockerfile" }}
+          key: kms-vault-operator-docker-image-cache-{{ checksum "Dockerfile" }}
           paths:
             - /home/circleci/cached-builder.tar
       - run:
