@@ -53,10 +53,6 @@ jobs:
           name: Install k3d
           command: |
             wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v3.0.0 bash
-      - save_cache:
-          key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod/cache
       - run:
           name: Run all tests
           command: |
@@ -86,6 +82,10 @@ jobs:
             go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v2 secrets"
             kubectl apply -f test/manifests/webhook/webhook.yaml
             go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With webhook"
+      - save_cache:
+          key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod/cache
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true
