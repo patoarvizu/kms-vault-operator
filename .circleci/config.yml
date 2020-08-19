@@ -73,19 +73,19 @@ jobs:
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
+            kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
             make install
             make deploy
-            kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
-            # go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run .*V1
+            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v1 secrets"
             kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
             kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
             sleep 3
             while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
               sleep 1
             done
-            # go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run .*V2
+            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v2 secrets"
             kubectl apply -f test/manifests/webhook/webhook.yaml
-            # go test ./test/e2e/... -root=$(pwd) -kubeconfig=$HOME/.k3d/k3s-default-config -globalMan=test/manifests/global/operator.yaml -v -run TestWebhook*
+            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With webhook"
       - snyk/scan:
           docker-image-name: patoarvizu/kms-vault-operator:latest
           fail-on-issues: true

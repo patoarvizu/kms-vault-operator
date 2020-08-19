@@ -58,7 +58,7 @@ var _ = BeforeSuite(func(done Done) {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join(".", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
 	}
 
 	var err error
@@ -68,7 +68,6 @@ var _ = BeforeSuite(func(done Done) {
 
 	err = k8sv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
-
 	// +kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
