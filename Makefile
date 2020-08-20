@@ -69,10 +69,10 @@ generate: controller-gen
 
 # Build the docker image
 docker-build: test
-	docker buildx build --load --platform=linux/amd64 $(OPERATOR_BUILD_ARGS) . -t $(IMG)
+	docker buildx build --platform=linux/amd64 --load $(OPERATOR_BUILD_ARGS) . -t $(IMG)
 
 docker-push-multiplatform:
-	docker buildx build --push --platform=linux/amd64,linux/arm64,linux/arm/v7 $(OPERATOR_BUILD_ARGS) . -t $(IMG)
+	docker buildx build --platform=linux/amd64,linux/arm64,linux/arm/v7 --push $(OPERATOR_BUILD_ARGS) . -t $(IMG)
 
 # Push the docker image
 docker-push:
