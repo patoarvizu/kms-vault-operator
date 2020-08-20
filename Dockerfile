@@ -18,8 +18,8 @@ COPY controllers/ controllers/
 COPY cmd/webhook/ cmd/webhook/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARM=${TARGETVARIANT: -1} GOARCH=$TARGETARCH GO111MODULE=on go build -a -o manager main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARM=${TARGETVARIANT: -1} GOARCH=$TARGETARCH GO111MODULE=on go build -o kms-vault-validating-webhook cmd/webhook/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARM=$(if [ $TARGETVARIANT = "v7" ]; then echo "7"; fi) GOARCH=$TARGETARCH GO111MODULE=on go build -a -o manager main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARM=$(if [ $TARGETVARIANT = "v7" ]; then echo "7"; fi) GOARCH=$TARGETARCH GO111MODULE=on go build -o kms-vault-validating-webhook cmd/webhook/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
