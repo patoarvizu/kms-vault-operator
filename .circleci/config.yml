@@ -112,10 +112,11 @@ jobs:
             export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
             notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
             export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
-            export DOCKER_CONTENT_TRUST=1
             VERSION=${CIRCLE_TAG:-latest}
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
             make docker-push-multiplatform IMG="patoarvizu/kms-vault-operator:$VERSION" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
+            docker pull patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            export DOCKER_CONTENT_TRUST=1
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             # docker push patoarvizu/kms-vault-operator:$VERSION
             # docker push patoarvizu/kms-vault-operator:latest
