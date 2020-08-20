@@ -114,12 +114,20 @@ jobs:
             export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
             VERSION=${CIRCLE_TAG:-latest}
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-            make docker-push-multiplatform IMG="patoarvizu/kms-vault-operator:$VERSION" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
-            docker pull patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            # make docker-push-multiplatform IMG="patoarvizu/kms-vault-operator:$VERSION" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
+            docker buildx build --platform=linux/amd64 --cache-from patoarvizu/kms-vault-operator --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64
+            docker buildx build --platform=linux/arm64 --cache-from patoarvizu/kms-vault-operator --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
+            docker buildx build --platform=linux/arm/v7 --cache-from patoarvizu/kms-vault-operator --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
             export DOCKER_CONTENT_TRUST=1
+            docker push patoarvizu/kms-vault-operator:latest-amd64
+            docker push patoarvizu/kms-vault-operator:latest-arm64
+            docker push patoarvizu/kms-vault-operator:latest-arm7
+            docker buildx imagetools create -t patoarvizu/kms-vault-operator:latest patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
+            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
+            docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
             docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
-            # docker push patoarvizu/kms-vault-operator:$VERSION
-            # docker push patoarvizu/kms-vault-operator:latest
+            docker push patoarvizu/kms-vault-operator:$VERSION
+            docker push patoarvizu/kms-vault-operator:latest
 
 workflows:
   version: 2
