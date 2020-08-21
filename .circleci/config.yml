@@ -124,11 +124,11 @@ jobs:
             docker push patoarvizu/kms-vault-operator:latest-arm7
             # docker buildx imagetools create -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
             docker manifest create patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
-            docker manifest push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            docker manifest push --purge patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             docker manifest create patoarvizu/kms-vault-operator:$VERSION patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
-            docker manifest push patoarvizu/kms-vault-operator:$VERSION
+            docker manifest push --purge patoarvizu/kms-vault-operator:$VERSION
             docker manifest create patoarvizu/kms-vault-operator:latest patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
-            docker manifest push patoarvizu/kms-vault-operator:latest
+            docker manifest push --purge patoarvizu/kms-vault-operator:latest
             # docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest
             # docker tag patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:$VERSION
             # docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
