@@ -140,6 +140,7 @@ jobs:
             # docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1
             # docker push patoarvizu/kms-vault-operator:$VERSION
             # docker push patoarvizu/kms-vault-operator:latest
+          no_output_timeout: 30m
       - save_cache:
           key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
           paths:
