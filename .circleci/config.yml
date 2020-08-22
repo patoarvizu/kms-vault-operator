@@ -122,12 +122,13 @@ jobs:
             else
               docker buildx build --progress=plain --platform=linux/amd64,linux/arm64,linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 -t patoarvizu/kms-vault-operator:$VERSION
             fi
-            docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest
-            docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
-            docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
-            # docker push patoarvizu/kms-vault-operator:latest-amd64
-            # docker push patoarvizu/kms-vault-operator:latest-arm64
-            # docker push patoarvizu/kms-vault-operator:latest-arm7
+            docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest
+            docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
+            docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
+            docker push patoarvizu/kms-vault-operator:latest
+            docker push patoarvizu/kms-vault-operator:latest-amd64
+            docker push patoarvizu/kms-vault-operator:latest-arm64
+            docker push patoarvizu/kms-vault-operator:latest-arm7
             # docker buildx imagetools create -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
             # docker manifest create patoarvizu/kms-vault-operator:$CIRCLE_SHA1 patoarvizu/kms-vault-operator:latest-amd64 patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:latest-arm7
             # docker manifest push --purge patoarvizu/kms-vault-operator:$CIRCLE_SHA1
