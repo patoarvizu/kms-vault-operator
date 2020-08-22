@@ -18,9 +18,13 @@ jobs:
     steps:
       - checkout
       - restore_cache:
+          name: Restoring golang cache
           keys:
-            - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
-            - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+          - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
+      - restore_cache:
+          name: Restoring buildx cache
+          keys:
+          - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
       - run:
           name: Install golang
           command: |
