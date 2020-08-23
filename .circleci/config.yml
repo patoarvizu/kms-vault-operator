@@ -122,7 +122,7 @@ jobs:
         severity-threshold: low
         additional-arguments: "--policy-path=.snyk"
     - run:
-        name: Push container
+        name: Push image
         command: |
           docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
           echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
@@ -132,7 +132,38 @@ jobs:
           VERSION=${CIRCLE_TAG:-latest}
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           export DOCKER_CONTENT_TRUST=1
-          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1\
+        no_output_timeout: 30m
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /home/circleci/buildx-cache
+
+  push-multi-arch:
+    executor: vm
+    steps:
+    - checkout
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+    - run:
+        name: Install notary
+        command: |
+          curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
+          chmod +x notary
+          sudo mv notary /usr/local/bin
+    - run:
+        name: Push multi-arch images
+        command: |
+          docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
+          echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
+          export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
+          notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
+          export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
+          VERSION=${CIRCLE_TAG:-latest}
+          OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+          export DOCKER_CONTENT_TRUST=1
           docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
           docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
         no_output_timeout: 30m
@@ -146,8 +177,11 @@ workflows:
   build-operator:
     jobs:
     - build:
-        requires:
         context: authentication-tokens
         filters:
           tags:
             only: /^v\d+\.\d+.\d+$/
+    - push-multi-arch:
+        requires:
+        - build
+        context: authentication-tokens
