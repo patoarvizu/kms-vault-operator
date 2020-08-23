@@ -202,5 +202,7 @@ workflows:
         - build
         context: authentication-tokens
         filters:
+          branches:
+            ignore: /^.*$/
           tags:
             only: /^v\d+\.\d+.\d+$/
