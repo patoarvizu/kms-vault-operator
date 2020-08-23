@@ -60,8 +60,6 @@ jobs:
     executor: vm
     steps:
       - checkout
-      - attach_workspace:
-          at: /
       - restore_cache:
           name: Restoring golang cache
           keys:
