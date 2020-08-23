@@ -119,20 +119,10 @@ jobs:
             export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
             VERSION=${CIRCLE_TAG:-latest}
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-            # make docker-push-multiplatform IMG="patoarvizu/kms-vault-operator:$VERSION" OPERATOR_BUILD_ARGS="$OPERATOR_BUILD_ARGS"
             export DOCKER_CONTENT_TRUST=1
-            if [ ! -f /home/circleci/buildx-cache/index.json ]; then
-              docker buildx build --progress=plain --platform=linux/amd64,linux/arm64,linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 -t patoarvizu/kms-vault-operator:$VERSION
-            else
-              docker buildx build --progress=plain --platform=linux/amd64,linux/arm64,linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 -t patoarvizu/kms-vault-operator:$VERSION
-            fi
-            docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest
-            docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
-            docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
-            docker push patoarvizu/kms-vault-operator:latest
-            docker push patoarvizu/kms-vault-operator:latest-amd64
-            docker push patoarvizu/kms-vault-operator:latest-arm64
-            docker push patoarvizu/kms-vault-operator:latest-arm7
+            docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+            docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
+            docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
           no_output_timeout: 30m
       - save_cache:
           key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
