@@ -201,3 +201,6 @@ workflows:
         requires:
         - build
         context: authentication-tokens
+        filters:
+          tags:
+            only: /^v\d+\.\d+.\d+$/
