@@ -53,7 +53,8 @@ jobs:
     - persist_to_workspace:
         root: /
         paths:
-          - "*"
+          - home/circleci/*
+          - usr/local/bin/*
 
   build:
     executor: vm
