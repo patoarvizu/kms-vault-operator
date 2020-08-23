@@ -47,9 +47,9 @@ jobs:
             docker buildx create --name cci-builder --use
             OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
             if [ ! -f /home/circleci/buildx-cache/index.json ]; then
-              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --platform=linux/amd64 --load $(OPERATOR_BUILD_ARGS) . -t patoarvizu/kms-vault-operator:latest
+              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
             else
-              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $(OPERATOR_BUILD_ARGS) . -t patoarvizu/kms-vault-operator:latest
+              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
             fi
           no_output_timeout: 30m
       - run:
