@@ -162,6 +162,10 @@ jobs:
     - run:
         name: Push multi-arch images
         command: |
+          sudo apt-get update
+          sudo apt-get install qemu-user -y
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --name cci-builder --use
           docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
           echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
           export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
