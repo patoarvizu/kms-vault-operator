@@ -3,11 +3,10 @@ version: 2.1
 orbs:
   snyk: snyk/snyk@0.0.8
 
-jobs:
-  build:
+executors:
+  vm:
     machine:
-        enabled: true
-        image: ubuntu-1604:202007-01
+      image: ubuntu-1604:202007-01
     environment:
       OPERATOR_SDK_VERSION: 1.0.0
       GOPATH: /home/circleci/go
@@ -15,6 +14,10 @@ jobs:
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
+
+jobs:
+  build:
+    executor: vm
     steps:
       - checkout
       - restore_cache:
