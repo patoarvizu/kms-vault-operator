@@ -16,10 +16,51 @@ executors:
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
 
 jobs:
+  install-tools:
+    executor: vm
+    steps:
+    - run:
+        name: Install golang
+        command: |
+          sudo rm -rf /usr/local/go
+          curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.13.8.linux-amd64.tar.gz"
+          sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
+          mkdir -p ${HOME}/go/bin
+          echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
+    - run:
+        name: Install operator-sdk
+        command: |
+          curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
+          chmod +x ${HOME}/go/bin/operator-sdk
+    - run:
+        name: Install kubectl
+        command: |
+          curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          mkdir -p "${HOME}/.kube"
+          touch "${HOME}/.kube/config"
+    - run:
+        name: Install k3d
+        command: |
+          wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v3.0.0 bash
+    - run:
+        name: Install notary
+        command: |
+          curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
+          chmod +x notary
+          sudo mv notary /usr/local/bin
+    - persist_to_workspace:
+        root: /
+        paths:
+          - "*"
+
   build:
     executor: vm
     steps:
       - checkout
+      - attach_workspace:
+          at: /
       - restore_cache:
           name: Restoring golang cache
           keys:
@@ -28,19 +69,6 @@ jobs:
           name: Restoring buildx cache
           keys:
           - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
-      - run:
-          name: Install golang
-          command: |
-            sudo rm -rf /usr/local/go
-            curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.13.8.linux-amd64.tar.gz"
-            sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
-            mkdir -p ${HOME}/go/bin
-            echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
-      - run:
-          name: Install operator-sdk
-          command: |
-            curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
-            chmod +x ${HOME}/go/bin/operator-sdk
       - run:
           name: Build image
           command: |
@@ -55,18 +83,6 @@ jobs:
               docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
             fi
           no_output_timeout: 30m
-      - run:
-          name: Install kubectl
-          command: |
-            curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            mkdir -p "${HOME}/.kube"
-            touch "${HOME}/.kube/config"
-      - run:
-          name: Install k3d
-          command: |
-            wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v3.0.0 bash
       - run:
           name: Run all tests
           command: |
@@ -107,12 +123,6 @@ jobs:
           severity-threshold: low
           additional-arguments: "--policy-path=.snyk"
       - run:
-          name: Install notary
-          command: |
-            curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
-            chmod +x notary
-            sudo mv notary /usr/local/bin
-      - run:
           name: Push container
           command: |
             docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
@@ -136,8 +146,11 @@ workflows:
   version: 2
   build-operator:
     jobs:
-      - build:
-          context: authentication-tokens
-          filters:
-            tags:
-              only: /^v\d+\.\d+.\d+$/
+    - install-tools
+    - build:
+        requires:
+        - install-tools
+        context: authentication-tokens
+        filters:
+          tags:
+            only: /^v\d+\.\d+.\d+$/
