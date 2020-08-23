@@ -19,6 +19,16 @@ jobs:
   install-tools:
     executor: vm
     steps:
+    - persist_to_workspace:
+        root: /
+        paths:
+          - home/circleci/*
+          - usr/local/bin/*
+
+  build:
+    executor: vm
+    steps:
+    - checkout
     - run:
         name: Install golang
         command: |
@@ -50,105 +60,93 @@ jobs:
           curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
           chmod +x notary
           sudo mv notary /usr/local/bin
-    - persist_to_workspace:
-        root: /
+    - restore_cache:
+        name: Restoring golang cache
+        keys:
+        - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+    - run:
+        name: Build image
+        command: |
+          sudo apt-get update
+          sudo apt-get install qemu-user -y
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --name cci-builder --use
+          OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+          if [ ! -f /home/circleci/buildx-cache/index.json ]; then
+            docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
+          else
+            docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
+          fi
+        no_output_timeout: 30m
+    - run:
+        name: Run all tests
+        command: |
+          export KUBECONFIG=~/.k3d/k3s-default-config
+          k3d cluster create --image rancher/k3s:v1.0.0 --port 8200:30028@server[0] --wait
+          k3d image import patoarvizu/kms-vault-operator:latest
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/prometheus-operator/crds.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-operator.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cert-manager-v0.14.1.yaml
+          kubectl rollout status -n cert-manager deployment/cert-manager-webhook -w
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cluster-issuer.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-external-service.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
+          while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
+            sleep 1
+          done
+          kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
+          make install
+          make deploy
+          go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v1 secrets"
+          kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
+          sleep 3
+          while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
+            sleep 1
+          done
+          go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v2 secrets"
+          kubectl apply -f test/manifests/webhook/webhook.yaml
+          go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With webhook"
+    - save_cache:
+        key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
         paths:
-          - home/circleci/*
-          - usr/local/bin/*
-
-  build:
-    executor: vm
-    steps:
-      - checkout
-      - restore_cache:
-          name: Restoring golang cache
-          keys:
-          - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
-      - restore_cache:
-          name: Restoring buildx cache
-          keys:
-          - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
-      - run:
-          name: Build image
-          command: |
-            sudo apt-get update
-            sudo apt-get install qemu-user -y
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker buildx create --name cci-builder --use
-            OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-            if [ ! -f /home/circleci/buildx-cache/index.json ]; then
-              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
-            else
-              docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
-            fi
-          no_output_timeout: 30m
-      - run:
-          name: Run all tests
-          command: |
-            export KUBECONFIG=~/.k3d/k3s-default-config
-            k3d cluster create --image rancher/k3s:v1.0.0 --port 8200:30028@server[0] --wait
-            k3d image import patoarvizu/kms-vault-operator:latest
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/prometheus-operator/crds.yaml
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-operator.yaml
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cert-manager-v0.14.1.yaml
-            kubectl rollout status -n cert-manager deployment/cert-manager-webhook -w
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cluster-issuer.yaml
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-external-service.yaml
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
-            while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
-              sleep 1
-            done
-            kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
-            make install
-            make deploy
-            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v1 secrets"
-            kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
-            kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
-            sleep 3
-            while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
-              sleep 1
-            done
-            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v2 secrets"
-            kubectl apply -f test/manifests/webhook/webhook.yaml
-            go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With webhook"
-      - save_cache:
-          key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod/cache
-      - snyk/scan:
-          docker-image-name: patoarvizu/kms-vault-operator:latest
-          fail-on-issues: true
-          project: patoarvizu/kms-vault-operator
-          severity-threshold: low
-          additional-arguments: "--policy-path=.snyk"
-      - run:
-          name: Push container
-          command: |
-            docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
-            echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
-            export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
-            notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
-            export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
-            VERSION=${CIRCLE_TAG:-latest}
-            OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-            export DOCKER_CONTENT_TRUST=1
-            docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1
-            docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
-            docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
-          no_output_timeout: 30m
-      - save_cache:
-          key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
-          paths:
-            - /home/circleci/buildx-cache
+          - /home/circleci/go/pkg/mod/cache
+    - snyk/scan:
+        docker-image-name: patoarvizu/kms-vault-operator:latest
+        fail-on-issues: true
+        project: patoarvizu/kms-vault-operator
+        severity-threshold: low
+        additional-arguments: "--policy-path=.snyk"
+    - run:
+        name: Push container
+        command: |
+          docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
+          echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
+          export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
+          notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
+          export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
+          VERSION=${CIRCLE_TAG:-latest}
+          OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+          export DOCKER_CONTENT_TRUST=1
+          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+          docker buildx build --progress=plain --platform=linux/arm64  --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64 -t patoarvizu/kms-vault-operator:$VERSION-arm64
+          docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7 -t patoarvizu/kms-vault-operator:$VERSION-arm7
+        no_output_timeout: 30m
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /home/circleci/buildx-cache
 
 workflows:
   version: 2
   build-operator:
     jobs:
-    - install-tools
     - build:
         requires:
-        - install-tools
         context: authentication-tokens
         filters:
           tags:
