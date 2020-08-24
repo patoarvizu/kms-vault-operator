@@ -186,6 +186,7 @@ jobs:
           docker buildx build --progress=plain --platform=linux/amd64,linux/arm64,linux/arm/v7 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --push $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1 -t patoarvizu/kms-vault-operator:$VERSION
           DIGEST=$(docker buildx imagetools inspect patoarvizu/kms-vault-operator:$CIRCLE_SHA1 | grep Digest | cut -d':' -f3)
           LENGTH=$(( $(docker buildx imagetools inspect patoarvizu/kms-vault-operator:$CIRCLE_SHA1 --raw | wc -c) - 1 ))
+          export NOTARY_AUTH=$(echo $DOCKER_HUB_USER:$DOCKER_HUB_ACCESS_TOKEN | base64)
           notary -s https://notary.docker.io -d ~/.docker/trust addhash -p docker.io/patoarvizu/kms-vault-operator latest $LENGTH --sha256 $DIGEST -r targets/releases
           notary -s https://notary.docker.io -d ~/.docker/trust addhash -p docker.io/patoarvizu/kms-vault-operator $CIRCLE_SHA1 $LENGTH --sha256 $DIGEST -r targets/releases
           notary -s https://notary.docker.io -d ~/.docker/trust addhash -p docker.io/patoarvizu/kms-vault-operator $VERSION $LENGTH --sha256 $DIGEST -r targets/releases
