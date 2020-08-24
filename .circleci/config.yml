@@ -144,6 +144,7 @@ jobs:
         key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
           - /home/circleci/buildx-cache
+        when: always
 
   push-multi-arch:
     executor: vm
@@ -193,6 +194,7 @@ jobs:
         key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
           - /home/circleci/buildx-cache
+        when: always
 
 workflows:
   version: 2
