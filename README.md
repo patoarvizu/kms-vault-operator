@@ -197,8 +197,9 @@ The way this is achieved is by initially loading the certificate and keeping it 
 
 ### Monitoring
 
-If your Kubernetes cluster is running the Prometheus [operator](https://github.com/coreos/prometheus-operator), this operator will automatically create an additional `Service` called `kms-vault-operator-metrics` and a corresponding `ServiceMonitor` of the same name. This monitor will scrape the operator for metrics on two different ports. Port 8383 will post general metrics about the running process, while port 8686 will post metrics about the custom resources managed by the operator. More information can be found on the Operator SDK [website](https://sdk.operatorframework.io/docs/golang/monitoring/prometheus/).
+~~If your Kubernetes cluster is running the Prometheus [operator](https://github.com/coreos/prometheus-operator), this operator will automatically create an additional `Service` called `kms-vault-operator-metrics` and a corresponding `ServiceMonitor` of the same name. This monitor will scrape the operator for metrics on two different ports. Port 8383 will post general metrics about the running process, while port 8686 will post metrics about the custom resources managed by the operator. More information can be found on the Operator SDK [website](https://sdk.operatorframework.io/docs/golang/monitoring/prometheus/).~~
 
+Up until version `v0.14.0`, this operator was using a version of the operator-sdk that supported automatic creation a `Service` and `ServiceMonitor` objects to scrape Prometheus metrics, but that functionality has been removed. If you're running the Prometheus operator in your cluster and you want to scrape metrics for this operator, you're going to have to explicitly create them yourself, querying the `/metrics` endpoint on port `:8080`.
 
 ## For security nerds
 
@@ -214,7 +215,13 @@ If you run `docker pull` with `DOCKER_CONTENT_TRUST=1`, the Docker client will o
 
 ## Multi-architecture images
 
-This project is cross-built with compatibility for amd64, arm64, and arm/v7. Due to a limitation with Docker Content Trust, manifest lists can't be signed, so no multi-architecture images are published. Instead, you can find images for individual architectures with the convention `patoarvizu/kms-vault-operator:<version>-<architecture>`, e.g. `patoarvizu/kms-vault-operator:v0.15.0-arm64`, or `patoarvizu/kms-vault-operator:latest-arm7`. To maintain consistency with previous releases, images without the `-<architecture>` suffix will be for the `amd64` architecture.
+Manifests published with the semver tag (e.g. `patoarvizu/kms-vault-operator:v0.15.0`), as well as `latest` are multi-architecture manifest lists. In addition to those, there are architecture-specific tags that correspond to an image manifest directly, tagged with the corresponding architecture as a suffix, e.g. `v0.15.0-amd64`. Both types (image manifests or manifest lists) are signed with Notary as described above.
+
+Here's the list of architectures the images are being built for, and their corresponding suffixes for images:
+
+- `linux/amd64`, `-amd64`
+- `linux/arm64`, `-arm64`
+- `linux/arm/v7`, `arm7`
 
 ### Docker images are labeled with Git and GPG metadata
 
