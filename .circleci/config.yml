@@ -132,7 +132,7 @@ jobs:
           VERSION=${CIRCLE_TAG:-latest}
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           export DOCKER_CONTENT_TRUST=1
-          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64 -t patoarvizu/kms-vault-operator:latest -t patoarvizu/kms-vault-operator:$VERSION -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1
+          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64
           docker push patoarvizu/kms-vault-operator:latest-amd64
           docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64
           docker push patoarvizu/kms-vault-operator:$VERSION-amd64
