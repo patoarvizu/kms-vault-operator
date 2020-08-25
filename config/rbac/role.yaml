@@ -1,0 +1,41 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - k8s.patoarvizu.dev
+  resources:
+  - kmsvaultsecrets
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.patoarvizu.dev
+  resources:
+  - kmsvaultsecrets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - k8s.patoarvizu.dev
+  resources:
+  - partialkmsvaultsecrets
+  verbs:
+  - get
+  - list
+  - watch

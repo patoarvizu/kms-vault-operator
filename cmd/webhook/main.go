@@ -12,7 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	kmsvaultv1alpha1 "github.com/patoarvizu/kms-vault-operator/pkg/apis/k8s/v1alpha1"
+	kmsvaultv1alpha1 "github.com/patoarvizu/kms-vault-operator/api/v1alpha1"
 	"github.com/radovskyb/watcher"
 	whhttp "github.com/slok/kubewebhook/pkg/http"
 	"github.com/slok/kubewebhook/pkg/log"

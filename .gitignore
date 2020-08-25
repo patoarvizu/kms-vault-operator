@@ -77,3 +77,6 @@ tags
 .vscode/*
 .history
 vendor/
+
+testbin/
+*.tar

@@ -5,38 +5,39 @@
 <!-- TOC -->
 
 - [KMS Vault operator](#kms-vault-operator)
-    - [Intro](#intro)
-    - [Description](#description)
-    - [Configuration](#configuration)
-        - [AWS](#aws)
-        - [Vault](#vault)
-            - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
-            - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
-            - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
-            - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
-            - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
-            - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
-        - [Command-line flags](#command-line-flags)
-        - [Deploying the operator](#deploying-the-operator)
-        - [Creating a secret](#creating-a-secret)
-        - [Partial secrets](#partial-secrets)
-        - [Empty secrets](#empty-secrets)
-        - [Validating webhook](#validating-webhook)
-            - [Auto-reloading certificate](#auto-reloading-certificate)
-        - [Monitoring](#monitoring)
-    - [For security nerds](#for-security-nerds)
-        - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
-        - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
-    - [Important notes by this project](#important-notes-by-this-project)
-        - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
-        - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
-        - [No validation on target path](#no-validation-on-target-path)
-        - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
-        - [Decryption or decoding errors are ignored (but logged)](#decryption-or-decoding-errors-are-ignored-but-logged)
-        - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
-        - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
-        - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
-    - [Help wanted!](#help-wanted)
+  - [Intro](#intro)
+  - [Description](#description)
+  - [Configuration](#configuration)
+    - [AWS](#aws)
+    - [Vault](#vault)
+      - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
+      - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
+      - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
+      - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
+      - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
+      - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
+    - [Command-line flags](#command-line-flags)
+    - [Deploying the operator](#deploying-the-operator)
+    - [Creating a secret](#creating-a-secret)
+    - [Partial secrets](#partial-secrets)
+    - [Empty secrets](#empty-secrets)
+    - [Validating webhook](#validating-webhook)
+      - [Auto-reloading certificate](#auto-reloading-certificate)
+    - [Monitoring](#monitoring)
+  - [For security nerds](#for-security-nerds)
+    - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
+  - [Multi-architecture images](#multi-architecture-images)
+    - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
+  - [Important notes by this project](#important-notes-by-this-project)
+    - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
+    - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
+    - [No validation on target path](#no-validation-on-target-path)
+    - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
+    - [Decryption or decoding errors are ignored (but logged)](#decryption-or-decoding-errors-are-ignored-but-logged)
+    - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
+    - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
+    - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
+  - [Help wanted!](#help-wanted)
 
 <!-- /TOC -->
 
@@ -196,7 +197,9 @@ The way this is achieved is by initially loading the certificate and keeping it 
 
 ### Monitoring
 
-If your Kubernetes cluster is running the Prometheus [operator](https://github.com/coreos/prometheus-operator), this operator will automatically create an additional `Service` called `kms-vault-operator-metrics` and a corresponding `ServiceMonitor` of the same name. This monitor will scrape the operator for metrics on two different ports. Port 8383 will post general metrics about the running process, while port 8686 will post metrics about the custom resources managed by the operator. More information can be found on the Operator SDK [website](https://sdk.operatorframework.io/docs/golang/monitoring/prometheus/).
+~~If your Kubernetes cluster is running the Prometheus [operator](https://github.com/coreos/prometheus-operator), this operator will automatically create an additional `Service` called `kms-vault-operator-metrics` and a corresponding `ServiceMonitor` of the same name. This monitor will scrape the operator for metrics on two different ports. Port 8383 will post general metrics about the running process, while port 8686 will post metrics about the custom resources managed by the operator. More information can be found on the Operator SDK [website](https://sdk.operatorframework.io/docs/golang/monitoring/prometheus/).~~
+
+Up until version `v0.14.0`, this operator was using a version of the operator-sdk that supported automatic creation a `Service` and `ServiceMonitor` objects to scrape Prometheus metrics, but that functionality has been removed. If you're running the Prometheus operator in your cluster and you want to scrape metrics for this operator, you're going to have to explicitly create them yourself, querying the `/metrics` endpoint on port `:8080`.
 
 ## For security nerds
 
@@ -209,6 +212,16 @@ The [Notary](https://github.com/theupdateframework/notary) project is a CNCF inc
 You can inspect the signed tags for this project by doing `docker trust inspect --pretty docker.io/patoarvizu/kms-vault-operator`, or (if you already have `notary` installed) `notary -d ~/.docker/trust/ -s https://notary.docker.io list docker.io/patoarvizu/kms-vault-operator`.
 
 If you run `docker pull` with `DOCKER_CONTENT_TRUST=1`, the Docker client will only pull images that come from registries that have a Notary server attached (like Docker Hub).
+
+## Multi-architecture images
+
+Manifests published with the semver tag (e.g. `patoarvizu/kms-vault-operator:v0.15.0`), as well as `latest` are multi-architecture manifest lists. In addition to those, there are architecture-specific tags that correspond to an image manifest directly, tagged with the corresponding architecture as a suffix, e.g. `v0.15.0-amd64`. Both types (image manifests or manifest lists) are signed with Notary as described above.
+
+Here's the list of architectures the images are being built for, and their corresponding suffixes for images:
+
+- `linux/amd64`, `-amd64`
+- `linux/arm64`, `-arm64`
+- `linux/arm/v7`, `arm7`
 
 ### Docker images are labeled with Git and GPG metadata
 

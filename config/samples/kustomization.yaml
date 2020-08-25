@@ -1,0 +1,4 @@
+## This file is auto-generated, do not modify ##
+resources:
+- k8s_v1alpha1_kmsvaultsecret.yaml
+- k8s_v1alpha1_partialkmsvaultsecret.yaml
