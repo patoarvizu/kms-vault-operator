@@ -27,8 +27,8 @@
     - [Monitoring](#monitoring)
   - [For security nerds](#for-security-nerds)
     - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
-  - [Multi-architecture images](#multi-architecture-images)
     - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
+  - [Multi-architecture images](#multi-architecture-images)
   - [Important notes by this project](#important-notes-by-this-project)
     - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
     - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
@@ -214,16 +214,6 @@ You can inspect the signed tags for this project by doing `docker trust inspect 
 
 If you run `docker pull` with `DOCKER_CONTENT_TRUST=1`, the Docker client will only pull images that come from registries that have a Notary server attached (like Docker Hub).
 
-## Multi-architecture images
-
-Manifests published with the semver tag (e.g. `patoarvizu/kms-vault-operator:v0.15.0`), as well as `latest` are multi-architecture manifest lists. In addition to those, there are architecture-specific tags that correspond to an image manifest directly, tagged with the corresponding architecture as a suffix, e.g. `v0.15.0-amd64`. Both types (image manifests or manifest lists) are signed with Notary as described above.
-
-Here's the list of architectures the images are being built for, and their corresponding suffixes for images:
-
-- `linux/amd64`, `-amd64`
-- `linux/arm64`, `-arm64`
-- `linux/arm/v7`, `arm7`
-
 ### Docker images are labeled with Git and GPG metadata
 
 In addition to the digital validation done by Docker on the image itself, you can do your own human validation by making sure the image's content matches the Git commit information (including tags if there are any) and that the GPG signature on the commit matches the key on the commit on github.com.
@@ -239,6 +229,16 @@ Here's the list of included Docker labels:
 - `GIT_COMMIT`
 - `GIT_TAG`
 - `SIGNATURE_KEY`
+
+## Multi-architecture images
+
+Manifests published with the semver tag (e.g. `patoarvizu/kms-vault-operator:v0.15.0`), as well as `latest` are multi-architecture manifest lists. In addition to those, there are architecture-specific tags that correspond to an image manifest directly, tagged with the corresponding architecture as a suffix, e.g. `v0.15.0-amd64`. Both types (image manifests or manifest lists) are signed with Notary as described above.
+
+Here's the list of architectures the images are being built for, and their corresponding suffixes for images:
+
+- `linux/amd64`, `-amd64`
+- `linux/arm64`, `-arm64`
+- `linux/arm/v7`, `arm7`
 
 ## Important notes by this project
 
