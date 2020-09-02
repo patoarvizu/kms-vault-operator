@@ -238,7 +238,7 @@ Here's the list of architectures the images are being built for, and their corre
 
 - `linux/amd64`, `-amd64`
 - `linux/arm64`, `-arm64`
-- `linux/arm/v7`, `arm7`
+- `linux/arm/v7`, `-arm7`
 
 ## Important notes by this project
 
