@@ -26,6 +26,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/go-logr/logr"
+	"github.com/operator-framework/operator-lib/handler"
 	"github.com/radovskyb/watcher"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -35,8 +36,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -120,32 +119,6 @@ var rec record.EventRecorder
 var reqLogger logr.Logger
 var vaultClient *vaultapi.Client
 var vaultAuthMethod VaultAuthMethod
-
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	c, err := controller.New("kmsvaultsecret-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-
-	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.EnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-
-	err = setVaultClient()
-	if err != nil {
-		return err
-	}
-	watchCertificate()
-
-	vaultAuthMethod = vaultAuthentication(VaultAuthenticationMethod)
-	err = vaultAuthMethod.login()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func setVaultClient() error {
 	c, err := vaultapi.NewClient(vaultapi.DefaultConfig())
@@ -234,6 +207,14 @@ func (r *KMSVaultSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	watchCertificate()
 	vaultAuthMethod = vaultAuthentication(VaultAuthenticationMethod)
 	err = vaultAuthMethod.login()
+	if err != nil {
+		return err
+	}
+	c, err := controller.New("kmsvaultsecret-controller", mgr, controller.Options{Reconciler: r})
+	if err != nil {
+		return err
+	}
+	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.InstrumentedEnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
