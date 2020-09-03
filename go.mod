@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.5-0.20200317185738-82f498082f02
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
+	github.com/operator-framework/operator-lib v0.1.0
 	github.com/prometheus/client_golang v1.6.0
 	github.com/radovskyb/watcher v1.0.7
 	github.com/slok/kubewebhook v0.10.0
