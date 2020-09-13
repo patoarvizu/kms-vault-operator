@@ -214,13 +214,7 @@ func (r *KMSVaultSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err != nil {
 		return err
 	}
-	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.InstrumentedEnqueueRequestForObject{})
-	if err != nil {
-		return err
-	}
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&k8sv1alpha1.KMSVaultSecret{}).
-		Complete(r)
+	return c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.InstrumentedEnqueueRequestForObject{})
 }
 
 func removeFinalizer(allFinalizers []string, finalizer string) []string {
