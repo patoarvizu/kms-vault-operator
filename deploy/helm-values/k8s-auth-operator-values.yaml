@@ -1,4 +1,0 @@
-authentication:
-  k8s:
-    role: kms-vault-operator
-    endpoint: auth/kubernetes/login

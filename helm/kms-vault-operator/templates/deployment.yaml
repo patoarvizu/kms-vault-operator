@@ -12,109 +12,47 @@ spec:
     metadata:
       labels:
         name: kms-vault-operator
+    {{- if .Values.podAnnotations }}
+      annoations: {{ toYaml .Values.podAnnotations | nindent 6 }}
+    {{- end }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
-        - name: kms-vault-operator
-          image: "patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}"
-          command:
-          - kms-vault-operator
-          {{- with .Values.authentication }}
-          {{- if .k8s }}
-          - --vault-authentication-method=k8s
-          {{- else if .token }}
-          - --vault-authentication-method=token
-          {{- else if .userpass }}
-          - --vault-authentication-method=userpass
-          {{- end }}
-          {{- end }}
-          env:
-            - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: kms-vault-operator
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.aws.accessKeyId.secretName }}
-                  key: {{ .Values.aws.accessKeyId.secretKey }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.aws.secretAccessKey.secretName }}
-                  key: {{ .Values.aws.secretAccessKey.secretKey }}
-            - name: AWS_REGION
-              value: {{ .Values.aws.region }}
-            - name: VAULT_ADDR
-              value: {{ .Values.vault.address }}
-            - name: VAULT_SKIP_VERIFY
-              value: {{ .Values.vault.skipVerify | quote }}
-            {{- with .Values.authentication }}
-            {{- if .k8s }}
-            - name: VAULT_K8S_ROLE
-              value: {{ .k8s.role }}
-            - name: VAULT_K8S_LOGIN_ENDPOINT
-              value: {{ .k8s.endpoint }}
-            {{- else if .token }}
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .token.secretName }}
-                  key: {{ .token.secretKey }}
-            {{- else if .userpass }}
-            - name: VAULT_USERNAME
-              value: {{ .userpass.username }}
-            - name: VAULT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .userpass.password.secretName }}
-                  key: {{ .userpass.password.secretKey }}
-            {{- end }}
-            {{- end }}
-        {{- if .Values.validatingWebhookSidecar.enabled }}
-        - name: kms-vault-validating-webhook
-          image: "patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}"
-          command:
-          - kms-vault-validating-webhook
-          - -tls-cert-file
-          - /tls/tls.crt
-          - -tls-key-file
-          - /tls/tls.key
-          ports:
-          - name: https
-            containerPort: 4443
-          - name: metrics
-            containerPort: 8081
-          volumeMounts:
-            - name: tls
-              mountPath: /tls
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.aws.accessKeyId.secretName }}
-                  key: {{ .Values.aws.accessKeyId.secretKey }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.aws.secretAccessKey.secretName }}
-                  key: {{ .Values.aws.secretAccessKey.secretKey }}
-            - name: AWS_REGION
-              value: {{ .Values.aws.region }}
+      - name: kms-vault-operator
+        image: patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}
+        command:
+        - /manager
+        args:
+        - --enable-leader-election
+        - --vault-authentication-method={{ .Values.vaultAuthenticationMethod }}
+        env:
+        - name: WATCH_NAMESPACE
+          value: {{ .Values.watchNamespace }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: kms-vault-operator
+        - name: AWS_REGION
+          value: {{ .Values.aws.region }}
+        - name: VAULT_ADDR
+          value: {{ .Values.vault.address }}
+        {{- toYaml .Values.authMethodVariables | nindent 8 }}
+        {{- toYaml .Values.aws.iamCredentialsSecrets | nindent 8 }}
+        {{- if not .Values.tls.enable }}
+        - name: VAULT_SKIP_VERIFY
+          value: "true"
+        {{- else }}
+        - name: VAULT_CAPATH
+          value: {{ .Values.tls.mountPath }}
+        volumeMounts:
+          - name: tls
+            mountPath: {{ .Values.tls.mountPath }}
         {{- end }}
-      {{- if .Values.validatingWebhookSidecar.enabled }}
+      {{- if .Values.tls.secretName }}
       volumes:
       - name: tls
         secret:
-          {{- if .Values.validatingWebhookSidecar.certManager.injectSecret }}
-          secretName: kms-vault-validating-webhook
-          {{- else }}
-          secretName: {{ .Values.validatingWebhookSidecar.tlsSecretName }}
-          {{- end }}
+          secretName: {{ .Values.tls.secretName }}
       {{- end }}

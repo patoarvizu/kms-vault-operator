@@ -1,19 +1,19 @@
-{{- if and .Values.validatingWebhookSidecar.enabled .Values.validatingWebhookSidecar.certManager.injectSecret }}
-apiVersion: cert-manager.io/v1alpha2
+{{- if and .Values.validatingWebhook.enabled .Values.validatingWebhook.certManager.injectSecret }}
+apiVersion: {{ .Values.validatingWebhook.certManager.apiVersion }}
 kind: Certificate
 metadata:
   name: kms-vault-validating-webhook
   namespace: {{ .Release.Namespace }}
 spec:
   secretName: kms-vault-validating-webhook
-  duration: 2160h # 90d
-  renewBefore: 360h # 15d
+  duration: 2160h
+  renewBefore: 360h
   commonName: kms-vault-validating-webhook
   dnsNames:
   - kms-vault-validating-webhook
   - kms-vault-validating-webhook.{{ .Release.Namespace }}
   - kms-vault-validating-webhook.{{ .Release.Namespace }}.svc
   issuerRef:
-    name: {{ .Values.validatingWebhookSidecar.certManager.issuerRef.name }}
-    kind: {{ .Values.validatingWebhookSidecar.certManager.issuerRef.kind }}
+    name: {{ .Values.validatingWebhook.certManager.issuerRef.name }}
+    kind: {{ .Values.validatingWebhook.certManager.issuerRef.kind }}
 {{- end }}

@@ -1,9 +1,9 @@
-{{- if .Values.validatingWebhookSidecar.enabled }}
+{{- if .Values.validatingWebhook.enabled }}
 kind: ValidatingWebhookConfiguration
 apiVersion: admissionregistration.k8s.io/v1beta1
 metadata:
   name: kms-vault-validating-webhook
-  {{- if .Values.validatingWebhookSidecar.certManager.injectSecret }}
+  {{- if .Values.validatingWebhook.certManager.injectSecret }}
   annotations:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/kms-vault-validating-webhook
   {{- end }}
@@ -20,15 +20,15 @@ webhooks:
     resources:
     - kmsvaultsecrets
     - partialkmsvaultsecrets
-  failurePolicy: {{ .Values.validatingWebhookSidecar.failurePolicy }}
+  failurePolicy: {{ .Values.validatingWebhook.failurePolicy }}
   clientConfig:
-    caBundle: {{ .Values.validatingWebhookSidecar.caBundle }}
+    caBundle: {{ .Values.validatingWebhook.caBundle }}
     service:
       namespace: {{ .Release.Namespace }}
       name: kms-vault-validating-webhook
   namespaceSelector:
     matchExpressions:
-    {{- range $i, $val := .Values.validatingWebhookSidecar.namespaceSelectorExpressions }}
+    {{- range $i, $val := .Values.validatingWebhook.namespaceSelectorExpressions }}
     - key: {{ $val.key }}
       operator: {{ $val.operator }}
     {{- end -}}

@@ -1,36 +1,53 @@
 imageVersion: latest
+imagePullPolicy: IfNotPresent
 
 serviceAccount:
   name: kms-vault-operator
-  create: true
+
+vaultAuthenticationMethod: k8s
+watchNamespace: ""
+
+tls:
+  enable: false
 
 aws:
-  accessKeyId:
-    secretName: aws-secrets
-    secretKey: AWS_ACCESS_KEY_ID
-  secretAccessKey:
-    secretName: aws-secrets
-    secretKey: AWS_SECRET_ACCESS_KEY
   region: us-east-1
+  iamCredentialsSecrets:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets
+        key: AWS_SECRET_ACCESS_KEY
+
+authMethodVariables:
+- name: VAULT_K8S_ROLE
+  value: kms-vault-operator
+- name: VAULT_K8S_LOGIN_ENDPOINT
+  value: auth/kubernetes/login
 
 vault:
   address: https://vault:8200
   skipVerify: true
 
-authentication:
-  k8s: null
-  token: null
-  userpass: null
-
-validatingWebhookSidecar:
+validatingWebhook:
   enabled: false
+  imageVersion: latest
+  imagePullPolicy: IfNotPresent
   failurePolicy: Fail
   certManager:
     injectSecret: false
+    apiVersion: cert-manager.io/v1alpha2
     issuerRef:
       name: selfsigning-issuer
       kind: ClusterIssuer
-  tlsSecretName: kms-vault-validating-webhook
+  tls:
+    secretName: kms-vault-validating-webhook
+    mountPath: /tls
   caBundle: Cg==
   namespaceSelectorExpressions:
   - key: kms-vault-operator
