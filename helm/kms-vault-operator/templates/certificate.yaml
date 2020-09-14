@@ -6,8 +6,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   secretName: kms-vault-validating-webhook
-  duration: 2160h
-  renewBefore: 360h
+  duration: {{ .Values.validatingWebhook.certManager.duration }}
+  renewBefore: {{ .Values.validatingWebhook.certManager.renewBefore }}
   commonName: kms-vault-validating-webhook
   dnsNames:
   - kms-vault-validating-webhook
