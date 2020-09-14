@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
       - name: kms-vault-validating-webhook
-        image: patoarvizu/kms-vault-operator:{{ .Values.validatingWebhook.imageVersion }}
-        imagePullPolicy: {{ .Values.validatingWebhook.imagePullPolicy }}
+        image: patoarvizu/kms-vault-operator:{{ default .Values.global.imageVersion .Values.validatingWebhook.imageVersion }}
+        imagePullPolicy: {{ default .Values.global.imagePullPolicy .Values.validatingWebhook.imagePullPolicy }}
         command:
         - /kms-vault-validating-webhook
         - -tls-cert-file
@@ -37,6 +37,9 @@ spec:
         {{- toYaml .Values.aws.iamCredentialsSecrets | nindent 8 }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
+        {{- if .Values.validatingWebhook.resources }}
+        resources: {{ toYaml .Values.resources | nindent 8 }}
+        {{- end }}
       volumes:
       - name: tls
         secret:

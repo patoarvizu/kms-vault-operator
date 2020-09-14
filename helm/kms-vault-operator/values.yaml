@@ -1,9 +1,16 @@
+global:
+  imageVersion: latest
+  imagePullPolicy: IfNotPresent
+  prometheusMonitoring:
+    enable: true
+
 imageVersion: latest
 imagePullPolicy: IfNotPresent
 
 serviceAccount:
   name: kms-vault-operator
 
+syncPeriodSeconds: 120
 vaultAuthenticationMethod: k8s
 watchNamespace: ""
 
@@ -32,7 +39,9 @@ authMethodVariables:
 
 vault:
   address: https://vault:8200
-  skipVerify: true
+
+prometheusMonitoring:
+  enable: false
 
 validatingWebhook:
   enabled: false
@@ -40,8 +49,10 @@ validatingWebhook:
   imagePullPolicy: IfNotPresent
   failurePolicy: Fail
   certManager:
-    injectSecret: false
+    injectSecret: true
     apiVersion: cert-manager.io/v1alpha2
+    duration: 2160h
+    renewBefore: 360h
     issuerRef:
       name: selfsigning-issuer
       kind: ClusterIssuer
@@ -52,3 +63,5 @@ validatingWebhook:
   namespaceSelectorExpressions:
   - key: kms-vault-operator
     operator: DoesNotExist
+  prometheusMonitoring:
+    enable: false

@@ -19,21 +19,17 @@ spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
       - name: kms-vault-operator
-        image: patoarvizu/kms-vault-operator:{{ .Values.imageVersion }}
+        image: patoarvizu/kms-vault-operator:{{ default .Values.global.imageVersion .Values.imageVersion }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         command:
         - /manager
         args:
         - --enable-leader-election
         - --vault-authentication-method={{ .Values.vaultAuthenticationMethod }}
+        - --sync-period-seconds={{ .Values.syncPeriodSeconds }}
         env:
         - name: WATCH_NAMESPACE
           value: {{ .Values.watchNamespace }}
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: OPERATOR_NAME
-          value: kms-vault-operator
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
         - name: VAULT_ADDR
@@ -50,7 +46,10 @@ spec:
           - name: tls
             mountPath: {{ .Values.tls.mountPath }}
         {{- end }}
-      {{- if .Values.tls.secretName }}
+        {{- if .Values.resources }}
+        resources: {{ toYaml .Values.resources | nindent 8 }}
+        {{- end }}
+      {{- if .Values.tls.enable }}
       volumes:
       - name: tls
         secret:

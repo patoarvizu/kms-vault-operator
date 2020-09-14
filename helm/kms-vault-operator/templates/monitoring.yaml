@@ -1,0 +1,72 @@
+{{- if (default .Values.global.prometheusMonitoring.enable .Values.prometheusMonitoring.enable) }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kms-vault-operator-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kms-vault-operator
+spec:
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: http-metrics
+    name: http-metrics
+  selector:
+    app: kms-vault-operator
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kms-vault-operator
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpoints:
+  - path: /metrics
+    port: http-metrics
+  selector:
+    matchLabels:
+      app: kms-vault-operator
+
+---
+
+{{- if .Values.validatingWebhook.enabled }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kms-vault-validating-webhook-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kms-vault-validating-webhook-metrics
+spec:
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8081
+    targetPort: webhook-metrics
+    name: webhook-metrics
+  selector:
+    app: kms-vault-validating-webhook
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kms-vault-operator-webhook
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpoints:
+  - port: webhook-metrics
+    path: /
+  selector:
+    matchLabels:
+      app: kms-vault-validating-webhook-metrics
+
+{{- end }}
+{{- end }}
