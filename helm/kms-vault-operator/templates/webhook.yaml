@@ -13,8 +13,8 @@ spec:
     metadata:
       labels:
         app: kms-vault-validating-webhook
-    {{- if .Values.validatingWebhook.podAnnotations }}
-      annoations: {{ toYaml .Values.validatingWebhook.podAnnotations | nindent 6 }}
+    {{- if (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) }}
+      annoations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 6 }}
     {{- end }}
     spec:
       containers:
