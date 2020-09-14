@@ -18,7 +18,6 @@
       - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
       - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
     - [Command-line flags](#command-line-flags)
-    - [Deploying the operator](#deploying-the-operator)
     - [Creating a secret](#creating-a-secret)
     - [Partial secrets](#partial-secrets)
     - [Empty secrets](#empty-secrets)
@@ -134,16 +133,6 @@ Flag | Default | Description
 -----|---------|------------
 `--vault-authentication-method` | `token` | Method to be used for the controller to authenticate with Vault.
 `--sync-period-seconds` | 120 | Amount of time in seconds to wait between before syncing the secret to Vault
-
-### Deploying the operator
-
-The `deploy/` directory has some statically defined manifests that you can modify to configure your own keys and deploy. However, this repo also provides a [Helm](https://helm.sh/) template in the `helm/kms-vault-operator` directory, as well as a sample Helm values file for each authentication method above under `deploy/helm-values`. Please note that some of the values assume you have previously created the [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) or other configuration they rely on.
-
-Tiller is not required to deploy this chart. It can be deployed by applying the charts rendered by `helm template` directly. For example, to deploy a chart with the `deploy/helm-values/vault-token-operator-values.yaml` values file, you can run:
-
-```
-helm template -n default -f deploy/helm-values/vault-token-operator-values.yaml helm/kms-vault-operator/ | kubectl apply -f -
-```
 
 ### Creating a secret
 
