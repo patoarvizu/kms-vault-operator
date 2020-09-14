@@ -1,0 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kms-vault-operator
+  namespace: vault
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - k8s.patoarvizu.dev
+  resources:
+  - kmsvaultsecrets
+  - partialkmsvaultsecrets
+  verbs:
+  - '*'

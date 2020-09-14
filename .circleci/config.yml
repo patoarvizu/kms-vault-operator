@@ -55,6 +55,13 @@ jobs:
         command: |
           wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v3.0.0 bash
     - run:
+        name: Install Helm
+        command: |
+          wget https://get.helm.sh/helm-v3.3.1-linux-amd64.tar.gz
+          tar -zxvf helm-v3.3.1-linux-amd64.tar.gz
+          chmod +x linux-amd64/helm
+          sudo mv linux-amd64/helm /usr/local/bin/
+    - run:
         name: Install notary
         command: |
           curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
@@ -99,8 +106,7 @@ jobs:
             sleep 1
           done
           kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
-          make install
-          make deploy
+          helm install kms-vault-operator helm/kms-vault-operator/ -n vault
           go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v1 secrets"
           kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
           kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
@@ -109,7 +115,7 @@ jobs:
             sleep 1
           done
           go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v2 secrets"
-          kubectl apply -f test/manifests/webhook/webhook.yaml
+          helm upgrade kms-vault-operator ./helm/kms-vault-operator/ -n vault --set validatingWebhook.enabled=true --set validatingWebhook.certManager.injectSecret=true
           go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With webhook"
     - save_cache:
         key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
