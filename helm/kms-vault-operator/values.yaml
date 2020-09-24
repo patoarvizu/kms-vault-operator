@@ -1,23 +1,26 @@
 global:
   # global.imageVersion -- (string) The image version used for both the operator and webhook.
-  imageVersion:
+  imageVersion: v0.15.0
   # global.imagePullPolicy -- The imagePullPolicy to be used on both the operator and webhook.
   imagePullPolicy: IfNotPresent
   prometheusMonitoring:
     # global.prometheusMonitoring.enable -- Controls whether the `ServiceMonitor` objects are created
     # for both the operator and the webhook.
-    enable: true
+    enable: false
   # global.podAnnotations -- A map of annotations to be set on both the operator and webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
-  podAnnotations:
+  podAnnotations: {}
+    # Example:
+    # iam.amazonaws.com/role: kube2iam-kms-vault-operator
 
-# imageVersion -- The image version used for the operator.
-imageVersion: latest
-# imagePullPolicy -- The imagePullPolicy to be used on the operator.
-imagePullPolicy: IfNotPresent
+# imageVersion -- The image version used for the operator. Defaults to `.global.imageVersion`.
+imageVersion:
+# imagePullPolicy -- The imagePullPolicy to be used on the operator. Defaults to `.global.imagePullPolicy`
+imagePullPolicy:
 
 # podAnnotations -- A map of annotations to be set on the operator pods.
 # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
+# Typically, either this or `.aws.iamCredentialsSecrets` is required for AWS authentication.
 podAnnotations:
 
 serviceAccount:
@@ -33,8 +36,9 @@ tls:
   # tls.enable -- Controls whether the operator Vault client should use TLS when talking to the target Vault server.
   enable: false
   # tls.mountPath -- The path where the CA cert from the secret should be mounted.
-  # This is required if `tls.enable` is set to `true`.
-  mountPath:
+  mountPath: /tls
+  # tls.certFileName -- The name of the CA cert file mounted on `.tls.mountPath`.
+  certFileName: ca.crt
   # tls.secretName -- The name of the `Secret` from which the CA cert will be mounted.
   # This is required if `tls.enable` is set to `true`.
   secretName:
@@ -43,19 +47,21 @@ tls:
 aws:
   # aws -- The value to set on the `AWS_DEFAULT_REGION` environment variable.
   region: us-east-1
-  # aws.iamCredentialsSecrets -- The set of environment variables and their references to `Secret`s that need to
-  # be added to the operator for KMS operations.
+  # aws.iamCredentialsSecrets -- A list of environment variables and their references to `Secret`s that need to
+  # be added as environment variables to the operator for KMS operations. Typically either this or `.podAnnotations`
+  # (and/or `.validatingWebhook.podAnnotations`) is required for AWS authentication.
   iamCredentialsSecrets:
-  - name: AWS_ACCESS_KEY_ID
-    valueFrom:
-      secretKeyRef:
-        name: aws-secrets
-        key: AWS_ACCESS_KEY_ID
-  - name: AWS_SECRET_ACCESS_KEY
-    valueFrom:
-      secretKeyRef:
-        name: aws-secrets
-        key: AWS_SECRET_ACCESS_KEY
+  # Example:
+  # - name: AWS_ACCESS_KEY_ID
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: aws-secrets
+  #       key: AWS_ACCESS_KEY_ID
+  # - name: AWS_SECRET_ACCESS_KEY
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: aws-secrets
+  #       key: AWS_SECRET_ACCESS_KEY
 
 # vaultAuthenticationMethod -- The value to be set on the `--vault-authentication-method` flag.
 vaultAuthenticationMethod: k8s
@@ -73,16 +79,19 @@ vault:
 
 prometheusMonitoring:
   # prometheusMonitoring.enable -- Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the operator.
-  enable: false
+  # Defaults to `.global.prometheusMonitoring.enable`.
+  enable:
 
 validatingWebhook:
   # validatingWebhook.enabled -- Deploy the resources to enable the webhook used for custom resource validation.
   # The rest of the settings under `validatingWebhook` are ignored if this is set to `false`.
   enabled: false
-  # validatingWebhook.imageVersion -- The image version used for the webhook.
-  imageVersion: latest
-  # validatingWebhook.imagePullPolicy -- The imagePullPolicy to be used on the webhook.
-  imagePullPolicy: IfNotPresent
+  # validatingWebhook.replicas -- Number of replicas of the validating webhook to deploy.
+  replicas: 1
+  # validatingWebhook.imageVersion -- The image version used for the webhook. Defaults to `.global.imageVersion`.
+  imageVersion:
+  # validatingWebhook.imagePullPolicy -- The imagePullPolicy to be used on the webhook. Defaults to `.global.imagePullPolicy`
+  imagePullPolicy:
   # validatingWebhook.failurePolicy -- The value to set directly on the `failurePolicy` of the `ValidatingWebhookConfiguration`. Valid values are `Fail` or `Ignore`.
   failurePolicy: Fail
   certManager:
@@ -100,11 +109,17 @@ validatingWebhook:
       name: selfsigning-issuer
       kind: ClusterIssuer
   tls:
+    # validatingWebhook.tls.mountPath -- The path where the certificate key pair will be mounted.
+    mountPath: /tls
+    # tls.certFileName -- The name of the private cert file mounted on `.validatingWebhook.tls.mountPath`.
+    # The default of `tls.cert` corresponds to the file name generated by cert-manager.
+    certFileName: tls.crt
+    # tls.privateKeyFileName -- The name of the private key file mounted on `.validatingWebhook.tls.mountPath`.
+    # The default of `tls.key` corresponds to the file name generated by cert-manager.
+    privateKeyFileName: tls.key
     # validatingWebhook.tls.secretName -- The name of the `Secret` that contains the certificate key pair to be used by the webhook.
     # This is only used if `validatingWebhook.certManager.injectSecret` is set to `false`.
     secretName: kms-vault-validating-webhook
-    # validatingWebhook.tls.mountPath -- The path where the certificate key pair will be mounted.
-    mountPath: /tls
   # validatingWebhook.caBundle -- The base64-encoded public CA certificate to be set on the `ValidatingWebhookConfiguration`.
   # Note that it defaults to `Cg==` which is a base64-encoded empty string.
   # If this value is not automatically set by cert-manager, or some other mutating webhook, this should be set explicitly.
@@ -115,7 +130,8 @@ validatingWebhook:
     operator: DoesNotExist
   prometheusMonitoring:
     # validatingWebhook.prometheusMonitoring.enable -- Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the webhook.
-    enable: false
+    # Defaults to `.global.prometheusMonitoring.enable`.
+    enable:
   # validatingWebhook.podAnnotations -- A map of annotations to be set on the webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
   podAnnotations:

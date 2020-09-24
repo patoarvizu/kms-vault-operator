@@ -5,7 +5,7 @@ metadata:
   name: kms-vault-validating-webhook
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.validatingWebhook.replicas }}
   selector:
     matchLabels:
       app: kms-vault-validating-webhook
@@ -14,7 +14,7 @@ spec:
       labels:
         app: kms-vault-validating-webhook
     {{- if (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) }}
-      annoations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 6 }}
+      annotations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 8 }}
     {{- end }}
     spec:
       containers:
@@ -24,9 +24,9 @@ spec:
         command:
         - /kms-vault-validating-webhook
         - -tls-cert-file
-        - {{ .Values.validatingWebhook.tls.mountPath }}/tls.crt
+        - {{ .Values.validatingWebhook.tls.mountPath }}/{{ .Values.validatingWebhook.tls.certFileName }}
         - -tls-key-file
-        - {{ .Values.validatingWebhook.tls.mountPath }}/tls.key
+        - {{ .Values.validatingWebhook.tls.mountPath }}/{{ .Values.validatingWebhook.tls.privateKeyFileName }}
         ports:
         - name: https
           containerPort: 4443
@@ -34,7 +34,9 @@ spec:
         - name: tls
           mountPath: {{ .Values.validatingWebhook.tls.mountPath }}
         env:
+        {{- if .Values.aws.iamCredentialsSecrets }}
         {{- toYaml .Values.aws.iamCredentialsSecrets | nindent 8 }}
+        {{- end }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
         {{- if .Values.validatingWebhook.resources }}
