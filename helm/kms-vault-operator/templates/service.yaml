@@ -8,9 +8,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - protocol: TCP
-      port: 443
-      targetPort: https
+  - protocol: TCP
+    port: 443
+    targetPort: https
   selector:
     name: kms-vault-operator
 {{- end }}

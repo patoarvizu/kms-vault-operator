@@ -1,0 +1,15 @@
+global:
+  imageVersion: latest
+
+aws:
+  iamCredentialsSecrets:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets
+        key: AWS_ACCESS_KEY_ID
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets
+        key: AWS_SECRET_ACCESS_KEY

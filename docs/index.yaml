@@ -2,11 +2,19 @@ apiVersion: v1
 entries:
   kms-vault-operator:
   - apiVersion: v1
-    created: "2020-09-14T18:14:27.874957-04:00"
+    created: "2020-09-24T19:38:00.862688-04:00"
+    description: KMS Vault operator
+    digest: 40d0a28047d024c2e697577dbeb90c7375fe1ccef22ee4f01194115a64c6f688
+    name: kms-vault-operator
+    urls:
+    - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v1
+    created: "2020-09-24T19:38:00.861845-04:00"
     description: KMS Vault operator
     digest: a65678c57fc89ff70356c6e52cda87fa6883b4e2b9cc830cfa6d525eabac9ebd
     name: kms-vault-operator
     urls:
     - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.2.0.tgz
     version: 0.2.0
-generated: "2020-09-14T18:14:27.873851-04:00"
+generated: "2020-09-24T19:38:00.860043-04:00"

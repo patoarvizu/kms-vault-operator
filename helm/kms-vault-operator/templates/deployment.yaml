@@ -13,14 +13,14 @@ spec:
       labels:
         name: kms-vault-operator
     {{- if (default .Values.global.podAnnotations .Values.podAnnotations) }}
-      annoations: {{ toYaml (default .Values.global.podAnnotations .Values.podAnnotations) | nindent 6 }}
+      annotations: {{ toYaml (default .Values.global.podAnnotations .Values.podAnnotations) | nindent 8 }}
     {{- end }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
       - name: kms-vault-operator
         image: patoarvizu/kms-vault-operator:{{ default .Values.global.imageVersion .Values.imageVersion }}
-        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        imagePullPolicy: {{ default .Values.global.imagePullPolicy .Values.imagePullPolicy }}
         command:
         - /manager
         args:
@@ -29,22 +29,24 @@ spec:
         - --sync-period-seconds={{ .Values.syncPeriodSeconds }}
         env:
         - name: WATCH_NAMESPACE
-          value: {{ .Values.watchNamespace }}
+          value: {{ .Values.watchNamespace | quote }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
         - name: VAULT_ADDR
           value: {{ .Values.vault.address }}
         {{- toYaml .Values.authMethodVariables | nindent 8 }}
+        {{- if .Values.aws.iamCredentialsSecrets }}
         {{- toYaml .Values.aws.iamCredentialsSecrets | nindent 8 }}
+        {{- end }}
         {{- if not .Values.tls.enable }}
         - name: VAULT_SKIP_VERIFY
           value: "true"
         {{- else }}
         - name: VAULT_CAPATH
-          value: {{ .Values.tls.mountPath }}
+          value: {{ .Values.tls.mountPath }}/{{ .Values.tls.certFileName }}
         volumeMounts:
-          - name: tls
-            mountPath: {{ .Values.tls.mountPath }}
+        - name: tls
+          mountPath: {{ .Values.tls.mountPath }}
         {{- end }}
         {{- if .Values.resources }}
         resources: {{ toYaml .Values.resources | nindent 8 }}
