@@ -12,7 +12,7 @@ global:
   podAnnotations: {}
     # Example:
     # iam.amazonaws.com/role: kube2iam-kms-vault-operator
-  # Map of cpu/memory resources and limits, to be set on both the operator and the webhook.
+  # global.resources -- Map of cpu/memory resources and limits, to be set on both the operator and the webhook.
   resources:
 
 # imageVersion -- The image version used for the operator. Defaults to `.global.imageVersion`.
@@ -20,7 +20,7 @@ imageVersion:
 # imagePullPolicy -- The imagePullPolicy to be used on the operator. Defaults to `.global.imagePullPolicy`
 imagePullPolicy:
 
-# Map of cpu/memory resources and limits, to be set on the operator
+# resources -- Map of cpu/memory resources and limits, to be set on the operator
 resources:
 
 # podAnnotations -- A map of annotations to be set on the operator pods.
@@ -140,5 +140,5 @@ validatingWebhook:
   # validatingWebhook.podAnnotations -- A map of annotations to be set on the webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
   podAnnotations:
-  # Map of cpu/memory resources and limits, to be set on the webhook
+  # validatingWebhook.resources -- Map of cpu/memory resources and limits, to be set on the webhook
   resources:
