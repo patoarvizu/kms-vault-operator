@@ -17,6 +17,9 @@ spec:
       annotations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 8 }}
     {{- end }}
     spec:
+      {{- if .Values.validatingWebhook.affinity }}
+      affinity: {{ toYaml .Values.validatingWebhook.affinity | nindent 10 }}
+      {{- end }}
       containers:
       - name: kms-vault-validating-webhook
         image: patoarvizu/kms-vault-operator:{{ default .Values.global.imageVersion .Values.validatingWebhook.imageVersion }}

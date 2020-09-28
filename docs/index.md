@@ -27,6 +27,7 @@ KMS Vault operator
 | tls.enable | bool | `false` | Controls whether the operator Vault client should use TLS when talking to the target Vault server. |
 | tls.mountPath | string | `"/tls"` | The path where the CA cert from the secret should be mounted. |
 | tls.secretName | string | `nil` | The name of the `Secret` from which the CA cert will be mounted. This is required if `tls.enable` is set to `true`. |
+| validatingWebhook.affinity | string | `nil` | Affinity/anti-affinity rules for pod scheduling the webhook according to the [documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity). This map will be set as is on the Deployment object. |
 | validatingWebhook.caBundle | string | `"Cg=="` | The base64-encoded public CA certificate to be set on the `ValidatingWebhookConfiguration`. Note that it defaults to `Cg==` which is a base64-encoded empty string. If this value is not automatically set by cert-manager, or some other mutating webhook, this should be set explicitly. |
 | validatingWebhook.certManager.apiVersion | string | `"cert-manager.io/v1alpha2"` | The `apiVersion` of the `Certificate` object created by the chart. It depends on the versions made available by the specific cert-manager running on the cluster. |
 | validatingWebhook.certManager.duration | string | `"2160h"` | The value to be set directly on the `duration` field of the `Certificate`. |
