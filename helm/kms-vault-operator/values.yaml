@@ -140,5 +140,5 @@ validatingWebhook:
   # validatingWebhook.podAnnotations -- A map of annotations to be set on the webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
   podAnnotations:
-  # Map of cpu/memory resources and limits, to be set on the operator
+  # Map of cpu/memory resources and limits, to be set on the webhook
   resources:
