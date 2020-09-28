@@ -48,8 +48,8 @@ spec:
         - name: tls
           mountPath: {{ .Values.tls.mountPath }}
         {{- end }}
-        {{- if .Values.resources }}
-        resources: {{ toYaml .Values.resources | nindent 8 }}
+        {{- if (default .Values.global.resources .Values.resources) }}
+        resources: {{ toYaml (default .Values.global.resources .Values.resources) | nindent 10 }}
         {{- end }}
       {{- if .Values.tls.enable }}
       volumes:

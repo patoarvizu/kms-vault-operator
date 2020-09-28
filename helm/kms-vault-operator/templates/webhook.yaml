@@ -39,8 +39,8 @@ spec:
         {{- end }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
-        {{- if .Values.validatingWebhook.resources }}
-        resources: {{ toYaml .Values.resources | nindent 8 }}
+        {{- if (default .Values.global.resources .Values.validatingWebhook.resources) }}
+        resources: {{ toYaml (default .Values.global.resources .Values.validatingWebhook.resources) | nindent 10 }}
         {{- end }}
       volumes:
       - name: tls
