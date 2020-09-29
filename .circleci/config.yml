@@ -215,7 +215,7 @@ workflows:
         context: authentication-tokens
         filters:
           branches:
-            ignore: /^.*$/
-            only: /^master$/
+            # ignore: /^.*$/
+            # only: /^master$/
           tags:
             only: /^v\d+\.\d+.\d+$/
