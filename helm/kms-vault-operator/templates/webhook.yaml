@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kms-vault-validating-webhook
-  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.validatingWebhook.replicas }}
   selector:
@@ -17,6 +16,9 @@ spec:
       annotations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 8 }}
     {{- end }}
     spec:
+      {{- if .Values.validatingWebhook.affinity }}
+      affinity: {{ toYaml .Values.validatingWebhook.affinity | nindent 10 }}
+      {{- end }}
       containers:
       - name: kms-vault-validating-webhook
         image: patoarvizu/kms-vault-operator:{{ default .Values.global.imageVersion .Values.validatingWebhook.imageVersion }}
@@ -39,8 +41,8 @@ spec:
         {{- end }}
         - name: AWS_REGION
           value: {{ .Values.aws.region }}
-        {{- if .Values.validatingWebhook.resources }}
-        resources: {{ toYaml .Values.resources | nindent 8 }}
+        {{- if (default .Values.global.resources .Values.validatingWebhook.resources) }}
+        resources: {{ toYaml (default .Values.global.resources .Values.validatingWebhook.resources) | nindent 10 }}
         {{- end }}
       volumes:
       - name: tls

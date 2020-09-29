@@ -12,5 +12,5 @@ spec:
     port: 443
     targetPort: https
   selector:
-    name: kms-vault-operator
+    app: kms-vault-validating-webhook
 {{- end }}
