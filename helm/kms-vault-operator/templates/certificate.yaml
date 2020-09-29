@@ -3,7 +3,6 @@ apiVersion: {{ .Values.validatingWebhook.certManager.apiVersion }}
 kind: Certificate
 metadata:
   name: kms-vault-validating-webhook
-  namespace: {{ .Release.Namespace }}
 spec:
   secretName: kms-vault-validating-webhook
   duration: {{ .Values.validatingWebhook.certManager.duration }}

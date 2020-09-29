@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kms-vault-validating-webhook
-  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.validatingWebhook.replicas }}
   selector:
