@@ -14,7 +14,7 @@ spec:
     targetPort: http-metrics
     name: http-metrics
   selector:
-    app: kms-vault-operator
+    name: kms-vault-operator
 
 ---
 
@@ -28,7 +28,7 @@ spec:
     port: http-metrics
   selector:
     matchLabels:
-      app: kms-vault-operator
+      name: kms-vault-operator
 
 ---
 
