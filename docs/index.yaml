@@ -2,7 +2,15 @@ apiVersion: v1
 entries:
   kms-vault-operator:
   - apiVersion: v2
-    created: "2020-10-06T18:40:57.884028-04:00"
+    created: "2020-10-08T17:35:21.403449-04:00"
+    description: KMS Vault operator
+    digest: 86e4ba39c93c61b69827db491eb0ed8e2f85e72833ad849ac5e7f4f9d7f827ff
+    name: kms-vault-operator
+    urls:
+    - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.3.2.tgz
+    version: 0.3.2
+  - apiVersion: v2
+    created: "2020-10-08T17:35:21.40258-04:00"
     description: KMS Vault operator
     digest: 8da0631ce1510e90fdeefa6c1f8609c78ebb603ce51377534f4dc8074cb13803
     name: kms-vault-operator
@@ -10,7 +18,7 @@ entries:
     - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.3.1.tgz
     version: 0.3.1
   - apiVersion: v2
-    created: "2020-10-06T18:40:57.883209-04:00"
+    created: "2020-10-08T17:35:21.400838-04:00"
     description: KMS Vault operator
     digest: fe82518c8b00de3d90eb5c4a72eddfd7397f3f4d4798fd15490ff6af9893762c
     name: kms-vault-operator
@@ -18,7 +26,7 @@ entries:
     - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.3.0.tgz
     version: 0.3.0
   - apiVersion: v1
-    created: "2020-10-06T18:40:57.880966-04:00"
+    created: "2020-10-08T17:35:21.397089-04:00"
     description: KMS Vault operator
     digest: 40d0a28047d024c2e697577dbeb90c7375fe1ccef22ee4f01194115a64c6f688
     name: kms-vault-operator
@@ -26,11 +34,11 @@ entries:
     - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.2.1.tgz
     version: 0.2.1
   - apiVersion: v1
-    created: "2020-10-06T18:40:57.880087-04:00"
+    created: "2020-10-08T17:35:21.395414-04:00"
     description: KMS Vault operator
     digest: a65678c57fc89ff70356c6e52cda87fa6883b4e2b9cc830cfa6d525eabac9ebd
     name: kms-vault-operator
     urls:
     - https://patoarvizu.github.io/kms-vault-operator/kms-vault-operator-0.2.0.tgz
     version: 0.2.0
-generated: "2020-10-06T18:40:57.878988-04:00"
+generated: "2020-10-08T17:35:21.393657-04:00"

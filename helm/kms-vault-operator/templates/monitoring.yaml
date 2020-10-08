@@ -48,7 +48,7 @@ spec:
     targetPort: webhook-metrics
     name: webhook-metrics
   selector:
-    app: kms-vault-validating-webhook
+    name: kms-vault-validating-webhook
 
 ---
 
@@ -62,7 +62,7 @@ spec:
     path: /
   selector:
     matchLabels:
-      app: kms-vault-validating-webhook-metrics
+      name: kms-vault-validating-webhook-metrics
 
 {{- end }}
 {{- end }}
