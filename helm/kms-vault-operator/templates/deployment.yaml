@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: kms-vault-operator
+      app: kms-vault-operator
   template:
     metadata:
       labels:
-        name: kms-vault-operator
+        app: kms-vault-operator
     {{- if (default .Values.global.podAnnotations .Values.podAnnotations) }}
       annotations: {{ toYaml (default .Values.global.podAnnotations .Values.podAnnotations) | nindent 8 }}
     {{- end }}
