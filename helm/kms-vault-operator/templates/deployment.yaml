@@ -43,6 +43,9 @@ spec:
         {{- else }}
         - name: VAULT_CAPATH
           value: {{ .Values.tls.mountPath }}/{{ .Values.tls.certFileName }}
+        ports:
+        - name: http-metrics
+          containerPort: 8080
         volumeMounts:
         - name: tls
           mountPath: {{ .Values.tls.mountPath }}
