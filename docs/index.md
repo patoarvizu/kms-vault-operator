@@ -1,6 +1,6 @@
 # kms-vault-operator
 
-![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square)
+![Version: 0.3.4](https://img.shields.io/badge/Version-0.3.4-informational?style=flat-square)
 
 KMS Vault operator
 
