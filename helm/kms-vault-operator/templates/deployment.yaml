@@ -43,13 +43,13 @@ spec:
         {{- else }}
         - name: VAULT_CAPATH
           value: {{ .Values.tls.mountPath }}/{{ .Values.tls.certFileName }}
-        ports:
-        - name: http-metrics
-          containerPort: 8080
         volumeMounts:
         - name: tls
           mountPath: {{ .Values.tls.mountPath }}
         {{- end }}
+        ports:
+        - name: http-metrics
+          containerPort: 8080
         {{- if (default .Values.global.resources .Values.resources) }}
         resources: {{ toYaml (default .Values.global.resources .Values.resources) | nindent 10 }}
         {{- end }}
