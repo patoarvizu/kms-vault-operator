@@ -16,6 +16,7 @@ spec:
       annotations: {{ toYaml (default .Values.global.podAnnotations .Values.validatingWebhook.podAnnotations) | nindent 8 }}
     {{- end }}
     spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- if .Values.validatingWebhook.affinity }}
       affinity: {{ toYaml .Values.validatingWebhook.affinity | nindent 10 }}
       {{- end }}
