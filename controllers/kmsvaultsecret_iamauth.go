@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	awsauth "github.com/hashicorp/vault/builtin/credential/aws"
+	awsauth "github.com/hashicorp/go-secure-stdlib/awsutil"
 )
 
 const (
@@ -31,12 +31,12 @@ func (auth VaultIAMAuth) login() error {
 	if !ok {
 		iamAuthEndpoint = iamAuthDefaultEndpoint
 	}
-	credentials, err := awsauth.RetrieveCreds(authIAMAWSAccessKeyId, authIAMAWSSecretAccessKey, "")
+	credentials, err := awsauth.RetrieveCreds(authIAMAWSAccessKeyId, authIAMAWSSecretAccessKey, "", nil)
 	if err != nil {
 		return err
 	}
 	// TODO: Support passing header value
-	loginData, err := awsauth.GenerateLoginData(credentials, "", "")
+	loginData, err := awsauth.GenerateLoginData(credentials, "", "", nil)
 	if err != nil {
 		return err
 	}

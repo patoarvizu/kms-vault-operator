@@ -13,6 +13,7 @@ executors:
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
+      GOLANG_VERSION: 1.14.15
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
         name: Install golang
         command: |
           sudo rm -rf /usr/local/go
-          curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go1.13.8.linux-amd64.tar.gz"
+          curl -Lo go.linux-amd64.tar.gz "https://dl.google.com/go/go${GOLANG_VERSION}.linux-amd64.tar.gz"
           sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
           mkdir -p ${HOME}/go/bin
           echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
