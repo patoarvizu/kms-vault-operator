@@ -81,16 +81,8 @@ jobs:
     - run:
         name: Build image
         command: |
-          sudo apt-get update
-          sudo apt-get install qemu-user -y
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
           docker buildx create --name cci-builder --use
-          OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-          if [ ! -f /home/circleci/buildx-cache/index.json ]; then
-            docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
-          else
-            docker buildx build --progress=plain --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest
-          fi
+          docker buildx build --progress=plain --platform=linux/amd64 --load . -t patoarvizu/kms-vault-operator:latest
         no_output_timeout: 30m
     - run:
         name: Run all tests
