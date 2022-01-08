@@ -8,27 +8,27 @@ executors:
     machine:
       image: ubuntu-2004:202111-02
     environment:
-      OPERATOR_SDK_VERSION: 1.0.0
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
       GOLANG_VERSION: 1.14.15
+      NOTARY_VERSION: 0.6.1
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
   vm-arm:
     machine:
       image: ubuntu-2004:202111-02
     environment:
-      OPERATOR_SDK_VERSION: 1.0.0
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
       GOLANG_VERSION: 1.14.15
+      NOTARY_VERSION: 0.6.1
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
 
 jobs:
-  build:
+  test:
     executor: vm
     steps:
     - checkout
@@ -40,11 +40,6 @@ jobs:
           sudo tar -C /usr/local -xzf go.linux-amd64.tar.gz
           mkdir -p ${HOME}/go/bin
           echo 'export PATH="$GOPATH/bin:$PATH"' >> "${BASH_ENV}"
-    - run:
-        name: Install operator-sdk
-        command: |
-          curl -L https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk-v${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o ${HOME}/go/bin/operator-sdk
-          chmod +x ${HOME}/go/bin/operator-sdk
     - run:
         name: Install kubectl
         command: |
@@ -64,26 +59,22 @@ jobs:
           tar -zxvf helm-v3.3.1-linux-amd64.tar.gz
           chmod +x linux-amd64/helm
           sudo mv linux-amd64/helm /usr/local/bin/
-    - run:
-        name: Install notary
-        command: |
-          curl -L https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64 -o notary
-          chmod +x notary
-          sudo mv notary /usr/local/bin
     - restore_cache:
         name: Restoring golang cache
         keys:
         - kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
-    - restore_cache:
-        name: Restoring buildx cache
-        keys:
-        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Build image
         command: |
           docker buildx create --name cci-builder --use
           docker buildx build --progress=plain --platform=linux/amd64 --load . -t patoarvizu/kms-vault-operator:latest
         no_output_timeout: 30m
+    - snyk/scan:
+        docker-image-name: patoarvizu/kms-vault-operator:latest
+        fail-on-issues: true
+        project: patoarvizu/kms-vault-operator
+        severity-threshold: low
+        additional-arguments: "--policy-path=.snyk"
     - run:
         name: Run all tests
         command: |
@@ -116,33 +107,59 @@ jobs:
         key: kms-vault-operator-golang-cache-{{ checksum "go.sum" }}
         paths:
           - /home/circleci/go/pkg/mod/cache
-    - snyk/scan:
-        docker-image-name: patoarvizu/kms-vault-operator:latest
-        fail-on-issues: true
-        project: patoarvizu/kms-vault-operator
-        severity-threshold: low
-        additional-arguments: "--policy-path=.snyk"
+
+  build-and-push-amd64-image:
+    executor: vm
+    steps:
+    - checkout
     - run:
-        name: Push image
+        name: Install notary
+        command: |
+          curl -L https://github.com/theupdateframework/notary/releases/download/v${NOTARY_VERSION}/notary-Linux-amd64 -o notary
+          chmod +x notary
+          sudo mv notary /usr/local/bin
+    - run:
+        name: Log in to Docker Hub
         command: |
           docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
+    - run:
+        name: Build and push amd64 image
+        command: |
+          docker buildx create --name cci-builder --use
           echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
           export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
           notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
           export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
-          VERSION=${CIRCLE_TAG:-latest}
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           export DOCKER_CONTENT_TRUST=1
-          docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64
+          VERSION=${CIRCLE_TAG:-latest}
+          docker buildx build --progress=plain --platform=linux/amd64 --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64
           docker push patoarvizu/kms-vault-operator:latest-amd64
           docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64
           docker push patoarvizu/kms-vault-operator:$VERSION-amd64
         no_output_timeout: 30m
-    - save_cache:
-        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
-        paths:
-          - /home/circleci/buildx-cache
-        when: always
+
+    # - run:
+    #     name: Push image
+    #     command: |
+    #       docker login --username $DOCKER_HUB_USER --password $DOCKER_HUB_ACCESS_TOKEN
+    #       echo $ENCODED_NOTARY_ROLE_KEY | base64 -d > ${HOME}/kms-vault-operator-circleci.key
+    #       export NOTARY_DELEGATION_PASSPHRASE=$NOTARY_ROLE_PASSPHRASE
+    #       notary -s https://notary.docker.io -d ~/.docker/trust key import ${HOME}/kms-vault-operator-circleci.key --role kms-vault-operator-circleci
+    #       export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$NOTARY_DELEGATION_PASSPHRASE
+    #       VERSION=${CIRCLE_TAG:-latest}
+    #       OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
+    #       export DOCKER_CONTENT_TRUST=1
+    #       docker buildx build --progress=plain --platform=linux/amd64 --cache-to=type=local,dest=/home/circleci/buildx-cache --cache-from=type=local,src=/home/circleci/buildx-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-amd64 -t patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64 -t patoarvizu/kms-vault-operator:$VERSION-amd64
+    #       docker push patoarvizu/kms-vault-operator:latest-amd64
+    #       docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1-amd64
+    #       docker push patoarvizu/kms-vault-operator:$VERSION-amd64
+    #     no_output_timeout: 30m
+    # - save_cache:
+    #     key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+    #     paths:
+    #       - /home/circleci/buildx-cache
+    #     when: always
 
   push-multi-arch:
     executor: vm
@@ -199,18 +216,25 @@ workflows:
   version: 2
   build-operator:
     jobs:
-    - build:
+    - test:
         context: authentication-tokens
         filters:
           tags:
             only: /^v\d+\.\d+.\d+$/
-    - push-multi-arch:
+    - build-and-push-amd64-image:
         requires:
-        - build
+        - test
         context: authentication-tokens
         filters:
-          branches:
-            ignore: /^.*$/
-            only: /^master$/
           tags:
             only: /^v\d+\.\d+.\d+$/
+    # - push-multi-arch:
+    #     requires:
+    #     - build
+    #     context: authentication-tokens
+    #     filters:
+    #       branches:
+    #         ignore: /^.*$/
+    #         only: /^master$/
+    #       tags:
+    #         only: /^v\d+\.\d+.\d+$/
