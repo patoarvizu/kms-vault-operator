@@ -28,15 +28,6 @@ executors:
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
 
 jobs:
-  install-tools:
-    executor: vm
-    steps:
-    - persist_to_workspace:
-        root: /
-        paths:
-          - home/circleci/*
-          - usr/local/bin/*
-
   build:
     executor: vm
     steps:
