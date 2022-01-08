@@ -89,15 +89,15 @@ jobs:
           kubectl rollout status -n cert-manager deployment/cert-manager-webhook -w
           kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/cert-manager/cluster-issuer.yaml
           kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-external-service.yaml
-          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/optimize-kms-vault-operator-build/vault/vault-cluster-v1.yaml
           while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
             sleep 1
           done
           kubectl -n vault create secret generic aws-secrets --from-literal=AWS_ACCESS_KEY_ID=$(echo $AWS_ACCESS_KEY_ID) --from-literal=AWS_SECRET_ACCESS_KEY=$(echo $AWS_SECRET_ACCESS_KEY)
           helm install kms-vault-operator helm/kms-vault-operator/ -n vault -f test/helm-values/values.yaml
           go test github.com/patoarvizu/kms-vault-operator/test/e2e -v -ginkgo.focus="With K/V v1 secrets"
-          kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v1.yaml
-          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/master/vault/vault-cluster-v2.yaml
+          kubectl delete -f https://raw.githubusercontent.com/patoarvizu/common-manifests/optimize-kms-vault-operator-build/vault/vault-cluster-v1.yaml
+          kubectl apply -f https://raw.githubusercontent.com/patoarvizu/common-manifests/optimize-kms-vault-operator-build/vault/vault-cluster-v2.yaml
           sleep 3
           while [ "$(kubectl -n vault get statefulset vault -o jsonpath={.status.readyReplicas})" != "1" ]; do
             sleep 1
