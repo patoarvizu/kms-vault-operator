@@ -14,6 +14,7 @@ executors:
       DOCKER_CLI_EXPERIMENTAL: enabled
       GOLANG_VERSION: 1.14.15
       NOTARY_VERSION: 0.6.1
+      KUBECTL_VERSION: 1.21.5
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
   vm-arm:
     machine:
@@ -25,6 +26,7 @@ executors:
       DOCKER_CLI_EXPERIMENTAL: enabled
       GOLANG_VERSION: 1.14.15
       NOTARY_VERSION: 0.6.1
+      KUBECTL_VERSION: 1.21.5
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
 
 jobs:
@@ -43,7 +45,7 @@ jobs:
     - run:
         name: Install kubectl
         command: |
-          curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl"
+          curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
           mkdir -p "${HOME}/.kube"
