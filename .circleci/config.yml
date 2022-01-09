@@ -13,7 +13,7 @@ executors:
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
-      GOLANG_VERSION: 1.14.15
+      GOLANG_VERSION: 1.16.12
       NOTARY_VERSION: 0.6.1
       KUBECTL_VERSION: 1.21.5
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
@@ -26,7 +26,7 @@ executors:
       VAULT_SKIP_VERIFY: 'true'
       GO111MODULE: "on"
       DOCKER_CLI_EXPERIMENTAL: enabled
-      GOLANG_VERSION: 1.14.15
+      GOLANG_VERSION: 1.16.12
       NOTARY_VERSION: 0.6.1
       KUBECTL_VERSION: 1.21.5
     working_directory: /home/circleci/go/src/github.com/patoarvizu/kms-vault-operator
