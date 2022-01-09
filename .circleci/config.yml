@@ -145,16 +145,25 @@ jobs:
     executor: vm-arm
     steps:
     - checkout
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Build arm64 image
         command: |
           docker buildx create --name cci-builder --use
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-          docker buildx build --progress=plain --platform=linux/arm64 --cache-to=type=local,dest=/tmp/latest-arm64-cache,mode=max $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
+          docker buildx build --progress=plain --platform=linux/arm64 --cache-to=type=local,dest=/tmp/latest-arm64-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm64-cache $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
     - persist_to_workspace:
         root: /tmp/
         paths:
         - latest-arm64-cache
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /tmp/
+        when: always
 
   push-arm64-image:
     executor: vm
@@ -162,6 +171,10 @@ jobs:
     - checkout
     - attach_workspace:
         at: /tmp/
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Install notary
         command: |
@@ -186,28 +199,42 @@ jobs:
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           export DOCKER_CONTENT_TRUST=1
           VERSION=${CIRCLE_TAG:-latest}
-          docker buildx build --progress=plain --platform=linux/arm64 --cache-from=type=local,src=/tmp/latest-arm64-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
+          docker buildx build --progress=plain --platform=linux/arm64 --cache-to=type=local,dest=/tmp/latest-arm64-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm64-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
           docker tag patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64
           docker tag patoarvizu/kms-vault-operator:latest-arm64 patoarvizu/kms-vault-operator:$VERSION-arm64
           docker push patoarvizu/kms-vault-operator:latest-arm64
           docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm64
           docker push patoarvizu/kms-vault-operator:$VERSION-arm64
         no_output_timeout: 60m
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /tmp/
+        when: always
 
   build-arm7-image:
     executor: vm-arm
     steps:
     - checkout
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Build arm7 image
         command: |
           docker buildx create --name cci-builder --use
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
-          docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/tmp/latest-arm7-cache,mode=max $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
+          docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/tmp/latest-arm7-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm7-cache $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
     - persist_to_workspace:
         root: /tmp/
         paths:
         - latest-arm7-cache
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /tmp/
+        when: always
 
   push-arm7-image:
     executor: vm
@@ -215,6 +242,10 @@ jobs:
     - checkout
     - attach_workspace:
         at: /tmp/
+    - restore_cache:
+        name: Restoring buildx cache
+        keys:
+        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Install notary
         command: |
@@ -239,13 +270,18 @@ jobs:
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           export DOCKER_CONTENT_TRUST=1
           VERSION=${CIRCLE_TAG:-latest}
-          docker buildx build --progress=plain --platform=linux/arm/v7 --cache-from=type=local,src=/tmp/latest-arm7-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
+          docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/tmp/latest-arm7-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm7-cache --load $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
           docker tag patoarvizu/kms-vault-operator:latest-arm7 patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7
           docker tag patoarvizu/kms-vault-operator:latest-arm7 patoarvizu/kms-vault-operator:$VERSION-arm7
           docker push patoarvizu/kms-vault-operator:latest-arm7
           docker push patoarvizu/kms-vault-operator:$CIRCLE_SHA1-arm7
           docker push patoarvizu/kms-vault-operator:$VERSION-arm7
         no_output_timeout: 60m
+    - save_cache:
+        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        paths:
+          - /tmp/
+        when: always
 
     # - run:
     #     name: Push image
