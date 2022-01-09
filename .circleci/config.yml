@@ -7,6 +7,7 @@ executors:
   vm:
     machine:
       image: ubuntu-2004:202111-02
+    resource_class: large
     environment:
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
@@ -19,6 +20,7 @@ executors:
   vm-arm:
     machine:
       image: ubuntu-2004:202111-02
+    resource_class: arm.medium
     environment:
       GOPATH: /home/circleci/go
       VAULT_SKIP_VERIFY: 'true'
