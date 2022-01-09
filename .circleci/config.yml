@@ -150,7 +150,7 @@ jobs:
     - restore_cache:
         name: Restoring buildx cache
         keys:
-        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        - kms-vault-operator-arm64-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Build arm64 image
         command: |
@@ -163,9 +163,9 @@ jobs:
         paths:
         - latest-arm64-cache
     - save_cache:
-        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        key: kms-vault-operator-arm64-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
-          - /tmp/
+          - /tmp/latest-arm64-cache
         when: always
 
   push-arm64-image:
@@ -177,7 +177,7 @@ jobs:
     - restore_cache:
         name: Restoring buildx cache
         keys:
-        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        - kms-vault-operator-arm64-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Install notary
         command: |
@@ -210,9 +210,9 @@ jobs:
           docker push patoarvizu/kms-vault-operator:$VERSION-arm64
         no_output_timeout: 60m
     - save_cache:
-        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        key: kms-vault-operator-arm64-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
-          - /tmp/
+          - /tmp/latest-arm64-cache
         when: always
 
   build-arm7-image:
@@ -222,7 +222,7 @@ jobs:
     - restore_cache:
         name: Restoring buildx cache
         keys:
-        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        - kms-vault-operator-arm7-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Build arm7 image
         command: |
@@ -235,9 +235,9 @@ jobs:
         paths:
         - latest-arm7-cache
     - save_cache:
-        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        key: kms-vault-operator-arm7-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
-          - /tmp/
+          - /tmp/latest-arm7-cache
         when: always
 
   push-arm7-image:
@@ -249,7 +249,7 @@ jobs:
     - restore_cache:
         name: Restoring buildx cache
         keys:
-        - kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        - kms-vault-operator-arm7-buildx-cache-{{ checksum "Dockerfile" }}
     - run:
         name: Install notary
         command: |
@@ -282,9 +282,9 @@ jobs:
           docker push patoarvizu/kms-vault-operator:$VERSION-arm7
         no_output_timeout: 60m
     - save_cache:
-        key: kms-vault-operator-buildx-cache-{{ checksum "Dockerfile" }}
+        key: kms-vault-operator-arm7-buildx-cache-{{ checksum "Dockerfile" }}
         paths:
-          - /tmp/
+          - /tmp/latest-arm7-cache
         when: always
 
     # - run:
