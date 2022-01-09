@@ -155,6 +155,7 @@ jobs:
           docker buildx create --name cci-builder --use
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           docker buildx build --progress=plain --platform=linux/arm64 --cache-to=type=local,dest=/tmp/latest-arm64-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm64-cache $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm64
+        no_output_timeout: 30m
     - persist_to_workspace:
         root: /tmp/
         paths:
@@ -226,6 +227,7 @@ jobs:
           docker buildx create --name cci-builder --use
           OPERATOR_BUILD_ARGS="--build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_TAG=$CIRCLE_TAG --build-arg COMMIT_TIMESTAMP=$(git log -1 --format=%at) --build-arg AUTHOR_EMAIL=$(git log -1 --format=%ae) --build-arg SIGNATURE_KEY=$(git log -1 --format=%GK)"
           docker buildx build --progress=plain --platform=linux/arm/v7 --cache-to=type=local,dest=/tmp/latest-arm7-cache,mode=max --cache-from=type=local,src=/tmp/latest-arm7-cache $OPERATOR_BUILD_ARGS . -t patoarvizu/kms-vault-operator:latest-arm7
+        no_output_timeout: 30m
     - persist_to_workspace:
         root: /tmp/
         paths:
