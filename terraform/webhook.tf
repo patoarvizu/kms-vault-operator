@@ -76,6 +76,14 @@ resource kubernetes_deployment_v1 kms_vault_validating_webhook {
           }
 
           dynamic "env" {
+            for_each = var.iam_credentials_env_vars
+            content {
+              name = env.value["name"]
+              value = env.value["value"]
+            }
+          }
+
+          dynamic "env" {
             for_each = var.iam_credentials_env_from_vars
             content {
               name = env.value["name"]
