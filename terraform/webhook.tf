@@ -181,6 +181,8 @@ resource kubernetes_validating_webhook_configuration_v1 kms_vault_validating_web
         }
       }
     }
+
+    side_effects = "Unknown"
   }
   lifecycle {
     ignore_changes = [
