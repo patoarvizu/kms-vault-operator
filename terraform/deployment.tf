@@ -59,7 +59,7 @@ resource kubernetes_deployment_v1 kms_vault_operator {
             for_each = var.tls_enable ? {ca_path: true} : {}
             content {
               name = "VAULT_CAPATH"
-              value = "/${var.tls_mount_path}/${var.tls_cert_file_name}"
+              value = "${var.tls_mount_path}/${var.tls_cert_file_name}"
             }
           }
 

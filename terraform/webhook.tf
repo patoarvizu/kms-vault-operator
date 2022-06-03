@@ -55,9 +55,9 @@ resource kubernetes_deployment_v1 kms_vault_validating_webhook {
           command = [
             "/kms-vault-validating-webhook",
             "-tls-cert-file",
-            "/${var.webhook_tls_mount_path}/${var.webhook_tls_cert_file_name}",
+            "${var.webhook_tls_mount_path}/${var.webhook_tls_cert_file_name}",
             "-tls-key-file",
-            "/${var.webhook_tls_mount_path}/${var.webhook_private_file_name}"
+            "${var.webhook_tls_mount_path}/${var.webhook_private_file_name}"
           ]
 
           port {
