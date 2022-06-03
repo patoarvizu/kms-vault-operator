@@ -174,4 +174,9 @@ resource kubernetes_validating_webhook_configuration_v1 kms_vault_validating_web
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      webhook[0].client_config[0].ca_bundle # Ignoring changes to the ca_bundle attirbute, since this is usually dynamic
+    ]
+  }
 }
