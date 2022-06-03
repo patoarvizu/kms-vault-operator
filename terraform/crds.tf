@@ -6,7 +6,6 @@ resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_pat
       "annotations" = {
         "controller-gen.kubebuilder.io/version" = "v0.3.0"
       }
-      "creationTimestamp" = null
       "name" = "kmsvaultsecrets.k8s.patoarvizu.dev"
     }
     "spec" = {
@@ -148,7 +147,6 @@ resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_
       "annotations" = {
         "controller-gen.kubebuilder.io/version" = "v0.3.0"
       }
-      "creationTimestamp" = null
       "name" = "partialkmsvaultsecrets.k8s.patoarvizu.dev"
     }
     "spec" = {
