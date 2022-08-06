@@ -7,6 +7,9 @@ global:
     # global.prometheusMonitoring.enable -- Controls whether the `ServiceMonitor` objects are created
     # for both the operator and the webhook.
     enable: false
+    serviceMonitor:
+      # global.prometheusMonitoring.serviceMonitor.customLabels -- Custom lables to add to the `ServiceMonitor` objects.
+      customLabels:
   # global.podAnnotations -- A map of annotations to be set on both the operator and webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
   podAnnotations: {}
@@ -86,6 +89,9 @@ prometheusMonitoring:
   # prometheusMonitoring.enable -- Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the operator.
   # Defaults to `.global.prometheusMonitoring.enable`.
   enable:
+  serviceMonitor:
+    # prometheusMonitoring.serviceMonitor.customLabels -- Custom lables to add to the operator `ServiceMonitor` object.
+    customLabels:
 
 validatingWebhook:
   # validatingWebhook.enabled -- Deploy the resources to enable the webhook used for custom resource validation.
@@ -137,6 +143,9 @@ validatingWebhook:
     # validatingWebhook.prometheusMonitoring.enable -- Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the webhook.
     # Defaults to `.global.prometheusMonitoring.enable`.
     enable:
+    serviceMonitor:
+      # validatingWebhook.prometheusMonitoring.serviceMonitor.customLabels -- Custom lables to add to the webhook `ServiceMonitor` object.
+      customLabels:
   # validatingWebhook.podAnnotations -- A map of annotations to be set on the webhook pods.
   # Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials.
   podAnnotations:

@@ -1,6 +1,6 @@
 # kms-vault-operator
 
-![Version: 0.3.5](https://img.shields.io/badge/Version-0.3.5-informational?style=flat-square)
+![Version: 0.3.6](https://img.shields.io/badge/Version-0.3.6-informational?style=flat-square)
 
 KMS Vault operator
 
@@ -15,11 +15,13 @@ KMS Vault operator
 | global.imageVersion | string | `"v0.15.0"` | (string) The image version used for both the operator and webhook. |
 | global.podAnnotations | object | `{}` | A map of annotations to be set on both the operator and webhook pods. Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials. |
 | global.prometheusMonitoring.enable | bool | `false` | Controls whether the `ServiceMonitor` objects are created for both the operator and the webhook. |
+| global.prometheusMonitoring.serviceMonitor.customLabels | string | `nil` | Custom lables to add to the `ServiceMonitor` objects. |
 | global.resources | string | `nil` | Map of cpu/memory resources and limits, to be set on both the operator and the webhook. |
 | imagePullPolicy | string | `nil` | The imagePullPolicy to be used on the operator. Defaults to `.global.imagePullPolicy` |
 | imageVersion | string | `nil` | The image version used for the operator. Defaults to `.global.imageVersion`. |
 | podAnnotations | string | `nil` | A map of annotations to be set on the operator pods. Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials. Typically, either this or `.aws.iamCredentialsSecrets` is required for AWS authentication. |
 | prometheusMonitoring.enable | string | `nil` | Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the operator. Defaults to `.global.prometheusMonitoring.enable`. |
+| prometheusMonitoring.serviceMonitor.customLabels | string | `nil` | Custom lables to add to the operator `ServiceMonitor` object. |
 | resources | string | `nil` | Map of cpu/memory resources and limits, to be set on the operator |
 | serviceAccount.name | string | `"kms-vault-operator"` | The name of the `ServiceAccount` to be created. |
 | syncPeriodSeconds | int | `120` | The value to be set on the `--sync-period-seconds` flag. |
@@ -41,6 +43,7 @@ KMS Vault operator
 | validatingWebhook.namespaceSelectorExpressions | list | `[{"key":"kms-vault-operator","operator":"DoesNotExist"}]` | A label selector expression to determine what namespaces should be in scope for the validating webhook. |
 | validatingWebhook.podAnnotations | string | `nil` | A map of annotations to be set on the webhook pods. Useful if using an annotation-based system like [kube2iam](https://github.com/jtblin/kube2iam) for dynamically injecting credentials. |
 | validatingWebhook.prometheusMonitoring.enable | string | `nil` | Create the `Service` and `ServiceMonitor` objects to enable Prometheus monitoring on the webhook. Defaults to `.global.prometheusMonitoring.enable`. |
+| validatingWebhook.prometheusMonitoring.serviceMonitor.customLabels | string | `nil` | Custom lables to add to the webhook `ServiceMonitor` object. |
 | validatingWebhook.replicas | int | `1` | Number of replicas of the validating webhook to deploy. |
 | validatingWebhook.resources | string | `nil` | Map of cpu/memory resources and limits, to be set on the webhook |
 | validatingWebhook.tls.certFileName | string | `"tls.crt"` |  |
