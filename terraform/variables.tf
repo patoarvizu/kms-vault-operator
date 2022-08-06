@@ -95,6 +95,12 @@ variable enable_prometheus_monitoring {
   description = "Set to `true` to create additional `Service` and `ServiceMonitor` objects for Prometheus monitoring. Requires the Prometheus operator to already be running in the cluster."
 }
 
+variable service_monitor_custom_labels {
+  type = map
+  default = {}
+  description = "Custom labels to add to the `ServiceMonitor` objects."
+}
+
 variable tls_mount_path {
   type = string
   default = "/tls"

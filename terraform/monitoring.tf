@@ -60,6 +60,7 @@ resource kubernetes_manifest servicemonitor_kms_vault_operator {
     metadata = {
       name = "kms-vault-operator"
       namespace = var.create_namespace ? kubernetes_namespace_v1.ns[var.namespace_name].metadata[0].name : data.kubernetes_namespace_v1.ns[var.namespace_name].metadata[0].name
+      labels = var.service_monitor_custom_labels
     }
     spec = {
       endpoints = [
@@ -85,6 +86,7 @@ resource kubernetes_manifest servicemonitor_kms_vault_operator_webhook {
     metadata = {
       name = "kms-vault-operator-webhook"
       namespace = var.create_namespace ? kubernetes_namespace_v1.ns[var.namespace_name].metadata[0].name : data.kubernetes_namespace_v1.ns[var.namespace_name].metadata[0].name
+      labels = var.service_monitor_custom_labels
     }
     spec = {
       endpoints = [
