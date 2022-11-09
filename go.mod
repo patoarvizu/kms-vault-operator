@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/aws/aws-sdk-go v1.37.19
 	github.com/go-logr/logr v0.1.0
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/awsutil v0.1.6
 	github.com/hashicorp/vault/api v1.1.2-0.20210713235431-1fc8af4c041f
 	github.com/onsi/ginkgo v1.12.1
