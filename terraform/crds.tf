@@ -1,11 +1,12 @@
 resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_patoarvizu_dev" {
   manifest = {
-    "apiVersion" = "apiextensions.k8s.io/v1beta1"
+    "apiVersion" = "apiextensions.k8s.io/v1"
     "kind" = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.3.0"
+        "controller-gen.kubebuilder.io/version" = "v0.7.0"
       }
+      "creationTimestamp" = null
       "name" = "kmsvaultsecrets.k8s.patoarvizu.dev"
     }
     "spec" = {
@@ -20,133 +21,141 @@ resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_pat
         "singular" = "kmsvaultsecret"
       }
       "scope" = "Namespaced"
-      "subresources" = {
-        "status" = {}
-      }
-      "validation" = {
-        "openAPIV3Schema" = {
-          "description" = "KMSVaultSecret is the Schema for the kmsvaultsecrets API"
-          "properties" = {
-            "apiVersion" = {
-              "description" = "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources"
-              "type" = "string"
-            }
-            "kind" = {
-              "description" = "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"
-              "type" = "string"
-            }
-            "metadata" = {
-              "type" = "object"
-            }
-            "spec" = {
-              "description" = "KMSVaultSecretSpec defines the desired state of KMSVaultSecret"
+      "versions" = [
+        {
+          "name" = "v1alpha1"
+          "schema" = {
+            "openAPIV3Schema" = {
+              "description" = "KMSVaultSecret is the Schema for the kmsvaultsecrets API"
               "properties" = {
-                "includeSecrets" = {
-                  "items" = {
-                    "type" = "string"
-                  }
-                  "type" = "array"
-                  "x-kubernetes-list-type" = "set"
+                "apiVersion" = {
+                  "description" = "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources"
+                  "type" = "string"
                 }
-                "kvSettings" = {
+                "kind" = {
+                  "description" = "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"
+                  "type" = "string"
+                }
+                "metadata" = {
+                  "type" = "object"
+                }
+                "spec" = {
+                  "description" = "KMSVaultSecretSpec defines the desired state of KMSVaultSecret"
                   "properties" = {
-                    "casIndex" = {
-                      "minimum" = 0
-                      "type" = "integer"
+                    "includeSecrets" = {
+                      "items" = {
+                        "type" = "string"
+                      }
+                      "type" = "array"
+                      "x-kubernetes-list-type" = "set"
                     }
-                    "engineVersion" = {
-                      "enum" = [
-                        "v1",
-                        "v2",
+                    "kvSettings" = {
+                      "properties" = {
+                        "casIndex" = {
+                          "minimum" = 0
+                          "type" = "integer"
+                        }
+                        "engineVersion" = {
+                          "enum" = [
+                            "v1",
+                            "v2",
+                          ]
+                          "type" = "string"
+                        }
+                      }
+                      "required" = [
+                        "engineVersion",
                       ]
+                      "type" = "object"
+                    }
+                    "path" = {
                       "type" = "string"
+                    }
+                    "secretContext" = {
+                      "additionalProperties" = {
+                        "type" = "string"
+                      }
+                      "type" = "object"
+                    }
+                    "secrets" = {
+                      "items" = {
+                        "properties" = {
+                          "emptySecret" = {
+                            "type" = "boolean"
+                          }
+                          "encryptedSecret" = {
+                            "type" = "string"
+                          }
+                          "key" = {
+                            "type" = "string"
+                          }
+                          "secretContext" = {
+                            "additionalProperties" = {
+                              "type" = "string"
+                            }
+                            "type" = "object"
+                          }
+                        }
+                        "required" = [
+                          "key",
+                        ]
+                        "type" = "object"
+                      }
+                      "type" = "array"
+                      "x-kubernetes-list-map-keys" = [
+                        "key",
+                      ]
+                      "x-kubernetes-list-type" = "map"
                     }
                   }
                   "required" = [
-                    "engineVersion",
+                    "kvSettings",
+                    "path",
+                    "secrets",
                   ]
                   "type" = "object"
                 }
-                "path" = {
-                  "type" = "string"
-                }
-                "secretContext" = {
-                  "additionalProperties" = {
-                    "type" = "string"
-                  }
-                  "type" = "object"
-                }
-                "secrets" = {
-                  "items" = {
-                    "properties" = {
-                      "emptySecret" = {
-                        "type" = "boolean"
-                      }
-                      "encryptedSecret" = {
-                        "type" = "string"
-                      }
-                      "key" = {
-                        "type" = "string"
-                      }
-                      "secretContext" = {
-                        "additionalProperties" = {
-                          "type" = "string"
-                        }
-                        "type" = "object"
-                      }
+                "status" = {
+                  "description" = "KMSVaultSecretStatus defines the observed state of KMSVaultSecret"
+                  "properties" = {
+                    "created" = {
+                      "type" = "boolean"
                     }
-                    "required" = [
-                      "key",
-                    ]
-                    "type" = "object"
                   }
-                  "type" = "array"
-                  "x-kubernetes-list-map-keys" = [
-                    "key",
-                  ]
-                  "x-kubernetes-list-type" = "map"
-                }
-              }
-              "required" = [
-                "kvSettings",
-                "path",
-                "secrets",
-              ]
-              "type" = "object"
-            }
-            "status" = {
-              "description" = "KMSVaultSecretStatus defines the observed state of KMSVaultSecret"
-              "properties" = {
-                "created" = {
-                  "type" = "boolean"
+                  "type" = "object"
                 }
               }
               "type" = "object"
             }
           }
-          "type" = "object"
-        }
-      }
-      "version" = "v1alpha1"
-      "versions" = [
-        {
-          "name" = "v1alpha1"
           "served" = true
           "storage" = true
+          "subresources" = {
+            "status" = {}
+          }
         },
       ]
+    }
+    "status" = {
+      "acceptedNames" = {
+        "kind" = ""
+        "plural" = ""
+      }
+      "conditions" = []
+      "storedVersions" = []
     }
   }
 }
 
 resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_k8s_patoarvizu_dev" {
   manifest = {
-    "apiVersion" = "apiextensions.k8s.io/v1beta1"
+    "apiVersion" = "apiextensions.k8s.io/v1"
     "kind" = "CustomResourceDefinition"
     "metadata" = {
       "annotations" = {
-        "controller-gen.kubebuilder.io/version" = "v0.3.0"
+        "controller-gen.kubebuilder.io/version" = "v0.7.0"
       }
+      "creationTimestamp" = null
       "name" = "partialkmsvaultsecrets.k8s.patoarvizu.dev"
     }
     "spec" = {
@@ -161,90 +170,97 @@ resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_
         "singular" = "partialkmsvaultsecret"
       }
       "scope" = "Namespaced"
-      "subresources" = {
-        "status" = {}
-      }
-      "validation" = {
-        "openAPIV3Schema" = {
-          "description" = "PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API"
-          "properties" = {
-            "apiVersion" = {
-              "description" = "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources"
-              "type" = "string"
-            }
-            "kind" = {
-              "description" = "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"
-              "type" = "string"
-            }
-            "metadata" = {
-              "type" = "object"
-            }
-            "spec" = {
-              "description" = "PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret"
+      "versions" = [
+        {
+          "name" = "v1alpha1"
+          "schema" = {
+            "openAPIV3Schema" = {
+              "description" = "PartialKMSVaultSecret is the Schema for the partialkmsvaultsecrets API"
               "properties" = {
-                "secretContext" = {
-                  "additionalProperties" = {
-                    "type" = "string"
-                  }
+                "apiVersion" = {
+                  "description" = "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources"
+                  "type" = "string"
+                }
+                "kind" = {
+                  "description" = "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"
+                  "type" = "string"
+                }
+                "metadata" = {
                   "type" = "object"
                 }
-                "secrets" = {
-                  "items" = {
-                    "properties" = {
-                      "emptySecret" = {
-                        "type" = "boolean"
-                      }
-                      "encryptedSecret" = {
+                "spec" = {
+                  "description" = "PartialKMSVaultSecretSpec defines the desired state of PartialKMSVaultSecret"
+                  "properties" = {
+                    "secretContext" = {
+                      "additionalProperties" = {
                         "type" = "string"
                       }
-                      "key" = {
-                        "type" = "string"
-                      }
-                      "secretContext" = {
-                        "additionalProperties" = {
-                          "type" = "string"
+                      "type" = "object"
+                    }
+                    "secrets" = {
+                      "items" = {
+                        "properties" = {
+                          "emptySecret" = {
+                            "type" = "boolean"
+                          }
+                          "encryptedSecret" = {
+                            "type" = "string"
+                          }
+                          "key" = {
+                            "type" = "string"
+                          }
+                          "secretContext" = {
+                            "additionalProperties" = {
+                              "type" = "string"
+                            }
+                            "type" = "object"
+                          }
                         }
+                        "required" = [
+                          "key",
+                        ]
                         "type" = "object"
                       }
+                      "type" = "array"
+                      "x-kubernetes-list-map-keys" = [
+                        "key",
+                      ]
+                      "x-kubernetes-list-type" = "map"
                     }
-                    "required" = [
-                      "key",
-                    ]
-                    "type" = "object"
                   }
-                  "type" = "array"
-                  "x-kubernetes-list-map-keys" = [
-                    "key",
+                  "required" = [
+                    "secrets",
                   ]
-                  "x-kubernetes-list-type" = "map"
+                  "type" = "object"
                 }
-              }
-              "required" = [
-                "secrets",
-              ]
-              "type" = "object"
-            }
-            "status" = {
-              "description" = "PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret"
-              "properties" = {
-                "created" = {
-                  "type" = "boolean"
+                "status" = {
+                  "description" = "PartialKMSVaultSecretStatus defines the observed state of PartialKMSVaultSecret"
+                  "properties" = {
+                    "created" = {
+                      "type" = "boolean"
+                    }
+                  }
+                  "type" = "object"
                 }
               }
               "type" = "object"
             }
           }
-          "type" = "object"
-        }
-      }
-      "version" = "v1alpha1"
-      "versions" = [
-        {
-          "name" = "v1alpha1"
           "served" = true
           "storage" = true
+          "subresources" = {
+            "status" = {}
+          }
         },
       ]
+    }
+    "status" = {
+      "acceptedNames" = {
+        "kind" = ""
+        "plural" = ""
+      }
+      "conditions" = []
+      "storedVersions" = []
     }
   }
 }
