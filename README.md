@@ -5,39 +5,38 @@
 
 <!-- TOC -->
 
-- [KMS Vault operator](#kms-vault-operator)
-  - [Intro](#intro)
-  - [Description](#description)
-  - [Configuration](#configuration)
-    - [AWS](#aws)
-    - [Vault](#vault)
-      - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
-      - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
-      - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
-      - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
-      - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
-      - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
-    - [Command-line flags](#command-line-flags)
-    - [Creating a secret](#creating-a-secret)
-    - [Partial secrets](#partial-secrets)
-    - [Empty secrets](#empty-secrets)
-    - [Validating webhook](#validating-webhook)
-      - [Auto-reloading certificate](#auto-reloading-certificate)
-    - [Monitoring](#monitoring)
-  - [For security nerds](#for-security-nerds)
-    - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
-    - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
-  - [Multi-architecture images](#multi-architecture-images)
-  - [Important notes by this project](#important-notes-by-this-project)
-    - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
-    - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
-    - [No validation on target path](#no-validation-on-target-path)
-    - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
-    - [Decryption or decoding errors are ignored (but logged)](#decryption-or-decoding-errors-are-ignored-but-logged)
-    - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
-    - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
-    - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
-  - [Help wanted!](#help-wanted)
+- [Intro](#intro)
+- [Description](#description)
+- [Configuration](#configuration)
+  - [AWS](#aws)
+  - [Vault](#vault)
+    - [Kubernetes authentication method (`--vault-authentication-method=k8s`)](#kubernetes-authentication-method---vault-authentication-methodk8s)
+    - [Vault token authentication method (`--vault-authentication-method=token`)](#vault-token-authentication-method---vault-authentication-methodtoken)
+    - [Vault userpass authentication method (`--vault-authentication-method=userpass`)](#vault-userpass-authentication-method---vault-authentication-methoduserpass)
+    - [Vault approle authentication method (`--vault-authentication-method=approle`)](#vault-approle-authentication-method---vault-authentication-methodapprole)
+    - [Vault github authentication method (`--vault-authentication-method=github`)](#vault-github-authentication-method---vault-authentication-methodgithub)
+    - [Vault iam authentication method (`--vault-authentication-method=iam`)](#vault-iam-authentication-method---vault-authentication-methodiam)
+  - [Command-line flags](#command-line-flags)
+  - [Creating a secret](#creating-a-secret)
+  - [Partial secrets](#partial-secrets)
+  - [Empty secrets](#empty-secrets)
+  - [Validating webhook](#validating-webhook)
+    - [Auto-reloading certificate](#auto-reloading-certificate)
+  - [Monitoring](#monitoring)
+- [For security nerds](#for-security-nerds)
+  - [Docker images are signed and published to Docker Hub's Notary server](#docker-images-are-signed-and-published-to-docker-hubs-notary-server)
+  - [Docker images are labeled with Git and GPG metadata](#docker-images-are-labeled-with-git-and-gpg-metadata)
+- [Multi-architecture images](#multi-architecture-images)
+- [Important notes by this project](#important-notes-by-this-project)
+  - [Kubernetes namespaces and Vault namespaces](#kubernetes-namespaces-and-vault-namespaces)
+  - [Multiple secrets writing to the same location](#multiple-secrets-writing-to-the-same-location)
+  - [No validation on target path](#no-validation-on-target-path)
+  - [Removing secrets when a `KMSVaultSecret` is deleted.](#removing-secrets-when-a-kmsvaultsecret-is-deleted)
+  - [Decryption or decoding errors are ignored (but logged)](#decryption-or-decoding-errors-are-ignored-but-logged)
+  - [Support for K/V V2 is limited (as of this version)](#support-for-kv-v2-is-limited-as-of-this-version)
+  - [Partial secrets don't validate keys](#partial-secrets-dont-validate-keys)
+  - [Partial secrets don't support finalizers (yet)](#partial-secrets-dont-support-finalizers-yet)
+- [Help wanted!](#help-wanted)
 
 <!-- /TOC -->
 
@@ -192,6 +191,8 @@ The way this is achieved is by initially loading the certificate and keeping it 
 Up until version `v0.14.0`, this operator was using a version of the operator-sdk that supported automatic creation a `Service` and `ServiceMonitor` objects to scrape Prometheus metrics, but that functionality has been removed. If you're running the Prometheus operator in your cluster and you want to scrape metrics for this operator, you're going to have to explicitly create them yourself, querying the `/metrics` endpoint on port `:8080`.
 
 ## For security nerds
+
+**NOTE:** Due to technical issues with the Notary client, starting on January 4th 2023 and until further notice new images will NOT be signed. The images will still be built for multi-architecture, and will include the Git and GPG metadata, but they won't pass Docker Content Trust validation if you have it enabled.
 
 ### Docker images are signed and published to Docker Hub's Notary server
 
