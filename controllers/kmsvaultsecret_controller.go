@@ -26,7 +26,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/go-logr/logr"
-	"github.com/operator-framework/operator-lib/handler"
 	"github.com/radovskyb/watcher"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -35,9 +34,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	vaultapi "github.com/hashicorp/vault/api"
 	k8sv1alpha1 "github.com/patoarvizu/kms-vault-operator/api/v1alpha1"
@@ -129,8 +126,6 @@ func setVaultClient() error {
 	return nil
 }
 
-var _ reconcile.Reconciler = &KMSVaultSecretReconciler{}
-
 // KMSVaultSecretReconciler reconciles a KMSVaultSecret object
 type KMSVaultSecretReconciler struct {
 	client.Client
@@ -143,12 +138,12 @@ type KMSVaultSecretReconciler struct {
 // +kubebuilder:rbac:groups=k8s.patoarvizu.dev,resources=kmsvaultsecrets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=events,verbs=create
 
-func (r *KMSVaultSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *KMSVaultSecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", req.Namespace, "Request.Name", req.Name)
 	reqLogger.Info("Reconciling KMSVaultSecret")
 
 	instance := &k8sv1alpha1.KMSVaultSecret{}
-	err := r.Client.Get(context.TODO(), req.NamespacedName, instance)
+	err := r.Client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return reconcile.Result{}, nil
@@ -158,7 +153,7 @@ func (r *KMSVaultSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	for _, partialSecretName := range instance.Spec.IncludeSecrets {
 		partialSecretInstance := &k8sv1alpha1.PartialKMSVaultSecret{}
-		err = r.Client.Get(context.TODO(), types.NamespacedName{Namespace: req.Namespace, Name: partialSecretName}, partialSecretInstance)
+		err = r.Client.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: partialSecretName}, partialSecretInstance)
 		if err != nil {
 			reqLogger.Info(fmt.Sprintf("Error getting included secret %s, skipping it...", partialSecretName))
 			continue
@@ -181,7 +176,7 @@ func (r *KMSVaultSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return reconcile.Result{}, err
 		}
 		instance.Finalizers = removeFinalizer(instance.Finalizers, DeletedFinalizer)
-		r.Client.Update(context.TODO(), instance)
+		r.Client.Update(ctx, instance)
 		return reconcile.Result{}, nil
 	}
 
@@ -193,7 +188,7 @@ func (r *KMSVaultSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	if !instance.Status.Created {
 		instance.Status.Created = true
 		rec.Event(instance, corev1.EventTypeNormal, "SecretCreated", fmt.Sprintf("Wrote secret %s to %s", instance.Name, instance.Spec.Path))
-		r.Client.Status().Update(context.TODO(), instance)
+		r.Client.Status().Update(ctx, instance)
 	}
 	return reconcile.Result{RequeueAfter: time.Second * time.Duration(SyncPeriodSeconds)}, nil
 }
@@ -210,11 +205,9 @@ func (r *KMSVaultSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err != nil {
 		return err
 	}
-	c, err := controller.New("kmsvaultsecret-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
-	return c.Watch(&source.Kind{Type: &k8sv1alpha1.KMSVaultSecret{}}, &handler.InstrumentedEnqueueRequestForObject{})
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&k8sv1alpha1.KMSVaultSecret{}).
+		Complete(r)
 }
 
 func removeFinalizer(allFinalizers []string, finalizer string) []string {

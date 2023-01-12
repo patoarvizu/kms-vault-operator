@@ -54,7 +54,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(os.Setenv("TEST_ASSET_KUBE_APISERVER", "../testbin/kube-apiserver")).To(Succeed())
 	Expect(os.Setenv("TEST_ASSET_ETCD", "../testbin/etcd")).To(Succeed())
 	Expect(os.Setenv("TEST_ASSET_KUBECTL", "../testbin/kubectl")).To(Succeed())
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+	logf.SetLogger(zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter)))
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
