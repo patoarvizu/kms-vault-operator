@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/vault/api v1.1.2-0.20210713235431-1fc8af4c041f
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/radovskyb/watcher v1.0.7
 	github.com/slok/kubewebhook v0.10.0
 	k8s.io/api v0.22.1
