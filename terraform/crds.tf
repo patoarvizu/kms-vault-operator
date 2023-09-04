@@ -136,14 +136,6 @@ resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_pat
         },
       ]
     }
-    "status" = {
-      "acceptedNames" = {
-        "kind" = ""
-        "plural" = ""
-      }
-      "conditions" = []
-      "storedVersions" = []
-    }
   }
 }
 
@@ -253,14 +245,6 @@ resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_
           }
         },
       ]
-    }
-    "status" = {
-      "acceptedNames" = {
-        "kind" = ""
-        "plural" = ""
-      }
-      "conditions" = []
-      "storedVersions" = []
     }
   }
 }
