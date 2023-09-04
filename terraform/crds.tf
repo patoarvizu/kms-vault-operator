@@ -138,6 +138,9 @@ resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_pat
       ]
     }
   }
+  field_manager {
+    force_conflicts = true
+  }
 }
 
 resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_k8s_patoarvizu_dev" {
@@ -248,5 +251,8 @@ resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_
         },
       ]
     }
+  }
+  field_manager {
+    force_conflicts = true
   }
 }
