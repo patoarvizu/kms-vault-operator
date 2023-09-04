@@ -23,7 +23,6 @@ resource "kubernetes_manifest" "customresourcedefinition_kmsvaultsecrets_k8s_pat
       "scope" = "Namespaced"
       "versions" = [
         {
-          "additionalPrinterColumns": [],
           "name" = "v1alpha1"
           "schema" = {
             "openAPIV3Schema" = {
@@ -168,7 +167,6 @@ resource "kubernetes_manifest" "customresourcedefinition_partialkmsvaultsecrets_
       "scope" = "Namespaced"
       "versions" = [
         {
-          "additionalPrinterColumns": [],
           "name" = "v1alpha1"
           "schema" = {
             "openAPIV3Schema" = {
