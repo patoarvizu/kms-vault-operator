@@ -70,6 +70,12 @@ resource kubernetes_role_v1 kms_vault_operator {
     api_groups = ["k8s.patoarvizu.dev"]
     resources  = ["kmsvaultsecrets/finalizers"]
   }
+
+  rule {
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+    api_groups = ["coordination.k8s.io"]
+    resources  = ["leases"]
+  }
 }
 
 resource kubernetes_role_binding_v1 kms_vault_operator {
