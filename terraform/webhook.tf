@@ -156,8 +156,8 @@ resource kubernetes_validating_webhook_configuration_v1 kms_vault_validating_web
     name = "kms-vault-validating-webhook.patoarvizu.dev"
 
     admission_review_versions = [
+      "v1beta1",
       "v1",
-      "v1beta1"
     ]
 
     client_config {
