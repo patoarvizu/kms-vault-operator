@@ -228,3 +228,12 @@ variable webhook_private_file_name {
   default = "tls.key"
   description = "The name of the TLS certificate private key file mounted on the webhook."
 }
+
+variable secret_mounts {
+  type = list(object({
+    secret_name = string
+    mount_path = string
+  }))
+  default = []
+  description = "References to Kubernetes secrets to be mounted on the workloads"
+}
