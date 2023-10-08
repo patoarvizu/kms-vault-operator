@@ -5,13 +5,13 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.9 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.8.0 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.8.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.8.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | >= 2.8.0 |
 
 ## Modules
 
@@ -54,6 +54,7 @@ No modules.
 | <a name="input_image_version"></a> [image\_version](#input\_image\_version) | The label of the image to run. | `string` | `"latest"` | no |
 | <a name="input_namespace_name"></a> [namespace\_name](#input\_namespace\_name) | The name of the namespace to create or look up. | `string` | `"kms-vault-operator"` | no |
 | <a name="input_pod_annotations"></a> [pod\_annotations](#input\_pod\_annotations) | Map of annotations to add to the operator pods. | `map` | `{}` | no |
+| <a name="input_secret_mounts"></a> [secret\_mounts](#input\_secret\_mounts) | References to Kubernetes secrets to be mounted on the workloads | <pre>list(object({<br>    secret_name = string<br>    mount_path = string<br>  }))</pre> | `[]` | no |
 | <a name="input_service_monitor_custom_labels"></a> [service\_monitor\_custom\_labels](#input\_service\_monitor\_custom\_labels) | Custom labels to add to the `ServiceMonitor` objects. | `map` | `{}` | no |
 | <a name="input_sync_period_seconds"></a> [sync\_period\_seconds](#input\_sync\_period\_seconds) | The secret sync frequency, in seconds. | `number` | `120` | no |
 | <a name="input_tls_cert_file_name"></a> [tls\_cert\_file\_name](#input\_tls\_cert\_file\_name) | The name of the TLS certificate file mounted on the operator. | `string` | `"tls.crt"` | no |

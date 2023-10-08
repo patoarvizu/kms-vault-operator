@@ -100,6 +100,14 @@ resource kubernetes_deployment_v1 kms_vault_operator {
             }
           }
 
+          dynamic "volume_mount" {
+            for_each = var.secret_mounts
+            content {
+              name = volume_mount.value.secret_name
+              mount_path = volume_mount.value.mount_path
+            }
+          }
+
           image_pull_policy = "IfNotPresent"
         }
 
@@ -109,6 +117,16 @@ resource kubernetes_deployment_v1 kms_vault_operator {
             name = "tls"
             secret {
               secret_name = var.tls_secret_name
+            }
+          }
+        }
+
+        dynamic "volume" {
+          for_each = var.secret_mounts
+          content {
+            name = volume.value.secret_name
+            secret {
+              secret_name = volume.value.secret_name
             }
           }
         }
